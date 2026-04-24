@@ -1,0 +1,42 @@
+.dashboard {
+    border: 1px solid var(--color-dove);
+    border-radius: 14px;
+    background: var(--color-white);
+    padding: 1.25rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.dashboard__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.dashboard__eyebrow {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-pewter);
+}
+
+.dashboard__title {
+    margin: 0.25rem 0 0;
+    color: var(--color-black);
+    font-size: clamp(var(--font-size-l), 2.2vw, var(--font-size-2xl));
+}
+
+.dashboard__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.65rem;
+}
+
+.dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.8rem;
+}

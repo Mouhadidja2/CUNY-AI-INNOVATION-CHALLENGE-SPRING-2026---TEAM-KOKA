@@ -1,20 +1,96 @@
-.siteHeader {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1.25rem;
+.header {
+    border: 1px solid var(--color-dove);
+    border-radius: 14px;
+    background-color: var(--color-white);
+    padding: 0.95rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
 }
 
-.siteKicker {
+.header__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+}
+
+.header__logoImage,
+.header__logoPlaceholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+}
+
+.header__logoImage {
+    object-fit: cover;
+    border: 1px solid var(--color-dove);
+}
+
+.header__logoPlaceholder {
+    border: 1px dashed var(--color-slate);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+}
+
+.header__title {
     margin: 0;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent);
+    font-size: clamp(var(--font-size-l), 2.2vw, var(--font-size-2xl));
+    color: var(--color-black);
 }
 
-.kickerIcon {
-    margin-right: 0.45rem;
+.header__right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
-.siteTitle {
-    margin: 0.5rem 0 0;
+.header__searchWrap {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.header__searchLabel {
+    font-size: var(--font-size-xs);
+    color: var(--color-pewter);
+}
+
+.header__searchInput {
+    border: 1px solid var(--color-dove);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    min-width: 210px;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-s);
+}
+
+.header__searchInput:focus {
+    outline: 2px solid var(--color-sky);
+    border-color: var(--color-azure);
+}
+
+@media (max-width: 860px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header__right {
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .header__searchInput {
+        min-width: 0;
+        width: 100%;
+    }
 }

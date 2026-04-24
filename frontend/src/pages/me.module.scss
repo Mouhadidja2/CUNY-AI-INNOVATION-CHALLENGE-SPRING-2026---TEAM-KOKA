@@ -1,0 +1,79 @@
+.me {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.me__card,
+.me__summary,
+.me__events {
+    border: 1px solid var(--color-dove);
+    border-radius: 1.5rem;
+    background: var(--color-white);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.me__eyebrow {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+}
+
+.me__title {
+    margin: 0;
+    font-size: clamp(var(--font-size-xl), 3vw, var(--font-size-3xl));
+    color: var(--color-black);
+}
+
+.me__meta,
+.me__description {
+    margin: 0;
+    color: var(--color-slate);
+    line-height: 1.6;
+}
+
+.me__summaryGrid {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.me__summaryItem {
+    border: 1px solid var(--color-dove);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.me__summaryLabel {
+    margin: 0 0 0.35rem;
+    color: var(--color-slate);
+    font-size: var(--font-size-sm);
+}
+
+.me__summaryValue {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-l);
+    font-weight: 700;
+}
+
+.me__eventList {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.65rem;
+    color: var(--color-slate);
+}
+
+.me__eventItem {
+    margin: 0;
+}
+
+.me__emptyState {
+    margin: 0;
+    color: var(--color-slate);
+}
