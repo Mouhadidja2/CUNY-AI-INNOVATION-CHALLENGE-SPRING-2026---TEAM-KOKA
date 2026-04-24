@@ -1,0 +1,16 @@
+.siteFooter {
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+}
+
+.footerText {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footerIcon {
+    color: var(--accent);
+}

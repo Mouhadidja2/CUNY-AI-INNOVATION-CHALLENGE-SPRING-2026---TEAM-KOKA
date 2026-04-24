@@ -1,0 +1,20 @@
+.siteHeader {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.25rem;
+}
+
+.siteKicker {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.kickerIcon {
+    margin-right: 0.45rem;
+}
+
+.siteTitle {
+    margin: 0.5rem 0 0;
+}
