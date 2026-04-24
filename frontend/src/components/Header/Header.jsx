@@ -1,9 +1,29 @@
-import Button from '../Button/Button'
-import styles from './header.module.scss'
+import { useState, useEffect } from 'react';
+import Button from '../Button/Button';
+import styles from './header.module.scss';
 
 function Header({ title, logoSrc, searchQuery, onSearchChange, onAuthClick, onHomeClick }) {
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+
+            if (window.scrollY > 50) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Combine base class with the BEM modifier conditionally
+    const headerClass = `${styles.header} ${isScrolled ? styles['header--scrolled'] : ''}`;
+
     return (
-        <header className={styles.header}>
+        <header className={headerClass}>
             <button className={styles.header__brand} type="button" onClick={onHomeClick}>
                 {logoSrc ? (
                     <img className={styles.header__logoImage} src={logoSrc} alt="App logo" />
@@ -32,7 +52,7 @@ function Header({ title, logoSrc, searchQuery, onSearchChange, onAuthClick, onHo
                 </Button>
             </div>
         </header>
-    )
+    );
 }
 
-export default Header
+export default Header;

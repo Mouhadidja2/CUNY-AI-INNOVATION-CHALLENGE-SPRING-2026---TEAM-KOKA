@@ -59,7 +59,7 @@
     /* ————————————————————————————
      Semantic Colors
   ———————————————————————————— */
-    --color-background: #f5f5f5;
+    --color-background: #ffffff;
     --color-text: #333333;
     --color-primary: var(--color-black);
     --color-secondary: var(--color-white);
@@ -96,6 +96,8 @@
     color: var(--color-text);
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
+
+
 }
 
 .app {
@@ -103,7 +105,7 @@
 }
 
 .app__shell {
-    width: min(1126px, 100%);
+    // width: min(1126px, 100%);
     margin: 0 auto;
     padding: 32px;
     display: flex;

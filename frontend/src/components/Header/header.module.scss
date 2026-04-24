@@ -1,12 +1,45 @@
 .header {
-    border: 1px solid var(--color-dove);
-    border-radius: 14px;
+    // Initial State: Static and Full Width
+    position: static;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 1000;
+
+    border: none;
+    border-radius: 0; // Starts flat
     background-color: var(--color-white);
     padding: 0.95rem 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.9rem;
+
+    // Transition for the "Island" animation
+    transition:
+        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-radius 0.4s ease,
+        box-shadow 0.4s ease,
+        padding 0.4s ease,
+        top 0.4s ease;
+
+    // BEM Modifier: The Island State
+    &--scrolled {
+        position: fixed;
+        top: 1rem; // Gap from the top of the viewport
+        left: 0;
+        right: 0;
+        margin: 0 auto; // Centers the island
+        width: 90%; // Marginally smaller width
+        max-width: 1200px; // Optional: prevents it from getting too wide on desktop
+        border-radius: 24px; // Rounded "island" corners
+        padding: 0.6rem 1.5rem; // Slightly more compact height
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); // Floating depth
+        border: 1px solid var(--color-dove);
+    }
 }
 
 .header__brand {
@@ -82,6 +115,11 @@
     .header {
         flex-direction: column;
         align-items: stretch;
+
+        &--scrolled {
+            width: 90%; // Slightly smaller on mobile to show more "island" gap
+            top: 0.5rem;
+        }
     }
 
     .header__right {

@@ -11,7 +11,8 @@ import AuthPage from './pages/auth'
 import Dashboard from './pages/Dashboard'
 import { clubDirectory, defaultUserProfile } from './data/siteData'
 import { dashboardData } from './data/dashboardData'
-import logoPlaceholder from './assets/CUNY_Logo_Blue_RGB.png'
+// import logoPlaceholder from './assets/CUNY_Logo_Blue_RGB.png'
+import logoPlaceholder from './assets/BMCC-Club-Builder.png'
 import styles from './styles/global.module.scss'
 
 const dashboardRoles = ['club officer', 'club advisor', 'sga officer']
