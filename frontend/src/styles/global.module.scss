@@ -1,26 +1,97 @@
+@use './fonts';
+
 :root {
-  --color-background: #f5f5f5;
-  --color-text: #333333;
+  /* ————————————————————————————
+     CUNY Primary Colors
+  ———————————————————————————— */
+  --color-cuny-blue: #0033A1;
+  --color-taxi: #FFB71B;
 
-  --font-family-base: Arial, sans-serif;
-  --font-family-italic: Arial, sans-serif;
-  --font-family-bold: Arial, sans-serif;
-  --font-family-bold-xl: Arial, sans-serif;
-  
-  --font-size-base: 16px;
-  --font-size-l: 20px;
-  --font-size-xl: 24px;
-  --spacing-base: 1rem;
+  /* ————————————————————————————
+     CUNY Secondary Colors
+  ———————————————————————————— */
+  --color-indigo: #011D49;
+  --color-azure: #1F5CFF;
+  --color-deep-cyan: #00AFEF;
+  --color-sky: #A3C9FF;
+  --color-lemonade: #FFEE1D;
+  --color-cream: #FFFCD5;
 
-  --color-primary: var(--color-black);
-  --color-secondary: var(--color-white);
+  /* ————————————————————————————
+     CUNY Neutral Colors
+  ———————————————————————————— */
+  --color-pearl: #F7F4EB;
+  --color-dove: #D8D7D6;
+  --color-slate: #688197;
+  --color-charcoal: #383838;
+  --color-pewter: #76777A;
+  --color-ochre: #C89210;
+  --color-umber: #896B25;
 
+  /* ————————————————————————————
+     CUNY Accent Colors
+  ———————————————————————————— */
+  --color-strawberry: #EA0045;
+  --color-hot-pink: #E81F75;
+  --color-bubble-gum: #FF9CCD;
+  --color-blush: #FFDCEE;
+  --color-cranberry: #BF0D3E;
+  --color-coral: #FF7370;
+  --color-salmon: #FFCBCA;
+  --color-grape: #510C76;
+  --color-lilac: #9A3CB0;
+  --color-thistle: #DEC2EB;
+  --color-sea-green: #005C5A;
+  --color-chartreuse: #C2D500;
+  --color-liberty: #45C2B1;
+  --color-mint: #B5EBD8;
+
+  /* ————————————————————————————
+     Base Colors
+  ———————————————————————————— */
   --color-black: #00003e;
   --color-white: #ffffff;
 
   --color-gray-dark: #545454;
   --color-gray-medium: #999999;
   --color-gray-light: #cfcfcf;
+
+  /* ————————————————————————————
+     Semantic Colors
+  ———————————————————————————— */
+  --color-background: #f5f5f5;
+  --color-text: #333333;
+  --color-primary: var(--color-black);
+  --color-secondary: var(--color-white);
+
+  /* ————————————————————————————
+     Typography
+  ———————————————————————————— */
+  
+  --font-family-base: 'Libre Franklin', Arial, sans-serif;
+  --font-family-italic: 'Libre Franklin', Arial, sans-serif;
+  --font-family-bold: 'Libre Franklin', Arial, sans-serif;
+  --font-family-bold-xl: 'Libre Franklin', Arial, sans-serif;
+ 
+  --font-size-2xs: 10px;
+  --font-size-xs:  12px;
+  --font-size-s:   14px;
+  --font-size-base: 16px;
+  --font-size-m:   18px;
+  --font-size-l:   20px;
+  --font-size-xl:  24px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 32px;
+  --font-size-4xl: 40px;
+  --font-size-5xl: 48px;
+  --font-size-6xl: 64px;
+
+  /* ————————————————————————————
+     Spacing
+  ———————————————————————————— */
+  --spacing-base: 1rem;
+
+  
 }
 
 
