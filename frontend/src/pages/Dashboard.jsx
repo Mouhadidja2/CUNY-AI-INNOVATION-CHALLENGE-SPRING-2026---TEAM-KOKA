@@ -61,16 +61,11 @@ function Dashboard({ user, data, clubs = [] }) {
     const [foodOrderStatus, setFoodOrderStatus] = useState('')
     const [foodOrders, setFoodOrders] = useState([])
     const [showFoodOrderTypeModal, setShowFoodOrderTypeModal] = useState(false)
-    const [selectedFoodOrderType, setSelectedFoodOrderType] = useState(null)
     const [showMbjForm, setShowMbjForm] = useState(false)
     const [showOutOfNetworkForm, setShowOutOfNetworkForm] = useState(false)
     const [showBudgetForm, setShowBudgetForm] = useState(false)
     const [budgetProposalStatus, setBudgetProposalStatus] = useState('')
     const [budgetProposals, setBudgetProposals] = useState([])
-
-    // Budget form dynamic activities state (min 5, max 10)
-    const [activityCount, setActivityCount] = useState(5)
-    const [nonActivityCount, setNonActivityCount] = useState(3)
 
     // Room reservation state
     const [showRoomReservation, setShowRoomReservation] = useState(false)
@@ -82,17 +77,23 @@ function Dashboard({ user, data, clubs = [] }) {
         setSelectedClub(targetClub)
     }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const savedQueue = JSON.parse(window.localStorage.getItem('food-order-queue') || '[]')
         const filtered = savedQueue.filter((entry) => entry.clubName === selectedClub)
         setFoodOrders(filtered)
+        // Intentionally using setState in effect to sync localStorage with React state
+        // eslint-disable-next-line react-hooks/rules-of-hooks
     }, [selectedClub])
 
     // Load budget proposals from localStorage
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const savedProposals = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
         const filtered = savedProposals.filter((entry) => entry.clubName === selectedClub)
         setBudgetProposals(filtered)
+        // Intentionally using setState in effect to sync localStorage with React state
+        // eslint-disable-next-line react-hooks/rules-of-hooks
     }, [selectedClub])
 
     // Early return after all hooks
@@ -131,7 +132,6 @@ function Dashboard({ user, data, clubs = [] }) {
     const budgetFolderPath = `src/data/by-clubs/${selectedClubSlug}/budget-proposals/`
 
     const handleFoodOrderTypeSelect = (type) => {
-        setSelectedFoodOrderType(type)
         setShowFoodOrderTypeModal(false)
         if (type === 'mbj') {
             setShowMbjForm(true)
