@@ -68,3 +68,23 @@ class BudgetProposal(models.Model):
 
     def __str__(self):
         return f"{self.club.name} - {self.semester} Budget - ${self.total_requested}"
+    
+class Event(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='events')
+    name = models.CharField(max_length=255)
+    date = models.DateField()
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name} - {self.date}"
+    
+class AttendanceRecord(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='attendance_records')
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    school_email = models.EmailField()
+    emplid = models.CharField(max_length=8, help_text="8-digit CUNY EMPLID")
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.event.name}"
