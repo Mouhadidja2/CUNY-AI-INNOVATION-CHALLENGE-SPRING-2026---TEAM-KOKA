@@ -1,0 +1,321 @@
+.modal__panel {
+    max-width: 700px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.roomReservation {
+    display: grid;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.roomReservation__section {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.roomReservation__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    font-size: var(--font-size-s);
+
+    svg {
+        color: var(--color-accent);
+    }
+}
+
+.roomReservation__selected {
+    margin-left: auto;
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
+.roomReservation__select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 0.5rem;
+    font-size: var(--font-size-s);
+    background: var(--color-white);
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    option {
+        padding: 0.5rem;
+    }
+}
+
+/* Floor Selector */
+.floorSelector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.floorSelector__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-dove);
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-charcoal);
+
+    &:hover:not(:disabled) {
+        background: var(--color-accent);
+        color: var(--color-white);
+        border-color: var(--color-accent);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.floorSelector__display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+.floorSelector__label {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.floorSelector__value {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-black);
+    line-height: 1;
+}
+
+/* Auto Assign Button */
+.autoAssignButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px dashed var(--color-accent);
+    border-radius: 0.5rem;
+    background: rgba(59, 130, 246, 0.05);
+    color: var(--color-accent);
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* Rooms Grid */
+.roomsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.roomCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1rem;
+    border: 2px solid var(--color-dove);
+    border-radius: 0.75rem;
+    background: var(--color-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover:not(:disabled) {
+        border-color: var(--color-accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.roomCard__available {
+    border-left: 4px solid #16a34a;
+}
+
+.roomCard__occupied {
+    border-left: 4px solid #dc2626;
+    background: rgba(220, 38, 38, 0.05);
+}
+
+.roomCard__reserved {
+    border-left: 4px solid #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.roomCard__selected {
+    border-color: var(--color-accent);
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.roomCard__number {
+    font-size: var(--font-size-m);
+    font-weight: 700;
+    color: var(--color-black);
+}
+
+.roomCard__status {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+    text-align: center;
+}
+
+.roomCard__checkmark {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    color: var(--color-accent);
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Legend */
+.roomReservation__legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-dove);
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+}
+
+.legendItem__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legendItem__available {
+    background: #16a34a;
+}
+
+.legendItem__occupied {
+    background: #dc2626;
+}
+
+.legendItem__reserved {
+    background: #f59e0b;
+}
+
+/* Actions */
+.roomReservation__actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-dove);
+}
+
+/* Confirmation Modal */
+.confirmationModal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.confirmationModal__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.confirmationModal__title {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-l);
+    font-weight: 700;
+}
+
+.confirmationModal__details {
+    margin: 0;
+    color: var(--color-charcoal);
+    font-size: var(--font-size-s);
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.confirmationModal__message {
+    margin: 0;
+    color: var(--color-slate);
+    font-size: var(--font-size-s);
+}
+
+.confirmationModal__actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}

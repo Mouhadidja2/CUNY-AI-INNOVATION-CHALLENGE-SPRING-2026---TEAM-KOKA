@@ -6,6 +6,8 @@ import Button from '../components/Button/Button'
 import Modal from '../components/Modal/Modal'
 import { demoMode } from '../App'
 import styles from './dashboard.module.scss'
+import { slugify } from '../utils/slugify.js'
+import RoomReservation from '../components/RoomReservation/RoomReservation.jsx'
 
 // Demo data for BMCC Programming Club
 const demoRecentEvents = [
@@ -37,12 +39,6 @@ const demoBudgetProposals = [
     { id: 'prop-1', title: 'Proposal #01 — 2/23/26', status: 'denied' },
 ]
 
-function slugify(value) {
-    return value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-}
 
 function getMonthDaySuffix() {
     const now = new Date()
@@ -71,6 +67,14 @@ function Dashboard({ user, data, clubs = [] }) {
     const [showBudgetForm, setShowBudgetForm] = useState(false)
     const [budgetProposalStatus, setBudgetProposalStatus] = useState('')
     const [budgetProposals, setBudgetProposals] = useState([])
+
+    // Budget form dynamic activities state (min 5, max 10)
+    const [activityCount, setActivityCount] = useState(5)
+    const [nonActivityCount, setNonActivityCount] = useState(3)
+
+    // Room reservation state
+    const [showRoomReservation, setShowRoomReservation] = useState(false)
+    const [selectedRoom, setSelectedRoom] = useState(null)
 
     // Sync selected club when forced club changes
     const targetClub = forcedClub || fallbackClub
@@ -549,6 +553,26 @@ function Dashboard({ user, data, clubs = [] }) {
                             )}
                         </div>
                     </section>
+                ) : activeAction === 'Reserve a room' ? (
+                    <section className={styles.dashboard__foodOrderPanel}>
+                        <h3 className={styles.dashboard__title}>Reserve a Room</h3>
+                        <p className={styles.dashboard__description}>Book a room for your club meetings and events</p>
+
+                        {selectedRoom ? (
+                            <div className={styles.dashboard__selectedRoom}>
+                                <p><strong>Selected Room:</strong> {selectedRoom.roomNumber}</p>
+                                <p><strong>Building:</strong> {selectedRoom.buildingName}</p>
+                                <p><strong>Floor:</strong> {selectedRoom.floor}</p>
+                                <Button variant="ghost" onClick={() => setSelectedRoom(null)}>
+                                    Change Room
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button variant="primary" onClick={() => setShowRoomReservation(true)}>
+                                Find and Reserve a Room
+                            </Button>
+                        )}
+                    </section>
                 ) : (
                     <section className={styles.dashboard__foodOrderPanel}>
                         <h3 className={styles.dashboard__title}>{activeAction}</h3>
@@ -710,6 +734,18 @@ function Dashboard({ user, data, clubs = [] }) {
                     </div>
                 </form>
             </Modal>
+
+            {/* Room Reservation Component */}
+            <RoomReservation
+                isOpen={showRoomReservation}
+                onClose={() => setShowRoomReservation(false)}
+                onRoomSelected={(room) => setSelectedRoom(room)}
+                onScheduleEvent={(room) => {
+                    setSelectedRoom(room)
+                    // Could open event scheduling modal here
+                }}
+                setToastMessage={(msg) => setFoodOrderStatus(msg)}
+            />
 
             {/* Budget Proposal Form Modal */}
             <Modal
