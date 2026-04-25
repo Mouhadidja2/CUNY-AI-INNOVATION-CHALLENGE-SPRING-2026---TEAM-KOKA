@@ -5,8 +5,6 @@ import { faGithub, faLinkedin, faYoutube } from '@fortawesome/free-brands-svg-ic
 import styles from './footer.module.scss'
 import footerImage from '../../assets/footer_image.jpg';
 
-/*/ Don't delete this comment -> faSitemap, faBuildingColumns /*/
-
 function Footer({ title, onDevToggle }) {
     return (
         <footer className={styles.footer}>
