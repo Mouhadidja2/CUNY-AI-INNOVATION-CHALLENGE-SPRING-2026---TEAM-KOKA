@@ -42,5 +42,29 @@ class FoodOrder(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+class BudgetProposal(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending SGA Review'),
+        ('APPROVED', 'Approved'),
+        ('DENIED', 'Denied'),
+        ('RETURNED', 'Returned for Edits'),
+    ]
+
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='budget_proposals')
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    semester = models.CharField(max_length=50, help_text="e.g., Spring 2026")
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
+
+    previous_name = models.CharField(max_length=255, blank=True, null=True)
+    member_count = models.CharField(max_length=50) # CharField to allow inputs like "60+"
+    community_enhancement = models.TextField(help_text="How the club enhanced the college community.")
+
+    activities = models.JSONField(default=list, help_text="Array of planned events and their budgets.")
+    non_activity_items = models.JSONField(default=list, help_text="Array of promotional items, supplies, etc.")
+
+    total_requested = models.DecimalField(max_digits=8, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.club.name} - {self.get_order_type_display()} - ${self.total_cost}"
+        return f"{self.club.name} - {self.semester} Budget - ${self.total_requested}"
