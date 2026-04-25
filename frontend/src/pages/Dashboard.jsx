@@ -466,6 +466,41 @@ function Dashboard({ user, data, clubs = [] }) {
                         </div>
 
                         <div className={styles.dashboard__eventsFeed}>
+                            {/* Scheduled Events created by officers */}
+                            {clubEvents.filter((e) => e.clubName === selectedClub).length > 0 ? (
+                                <div className={styles.dashboard__eventSection}>
+                                    <h4 className={styles.dashboard__eyebrow}>Scheduled Events</h4>
+                                    <div className={styles.dashboard__eventCards}>
+                                        {clubEvents
+                                            .filter((e) => e.clubName === selectedClub)
+                                            .map((event) => (
+                                                <div key={event.id} className={styles.dashboard__createdEventCard}>
+                                                    {event.banner && (
+                                                        <img
+                                                            src={event.banner}
+                                                            alt={`${event.title} banner`}
+                                                            className={styles.dashboard__createdEventBanner}
+                                                        />
+                                                    )}
+                                                    <h5 className={styles.dashboard__eventTitle}>{event.title}</h5>
+                                                    <div className={styles.dashboard__createdEventMeta}>
+                                                        <span className={`${styles.dashboard__visibilityBadge} ${styles[`dashboard__visibilityBadge--${event.visibility}`]}`}>
+                                                            {event.visibility}
+                                                        </span>
+                                                        <span className={styles.dashboard__createdEventRoom}>
+                                                            {event.roomNumber} · {event.buildingName}
+                                                        </span>
+                                                    </div>
+                                                    <p className={styles.dashboard__eventTime}>{event.time}</p>
+                                                    {event.description && (
+                                                        <p className={styles.dashboard__createdEventDescription}>{event.description}</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            ) : null}
+
                             {recentHeldEvents.length > 0 ? (
                                 <div className={styles.dashboard__eventSection}>
                                     <h4 className={styles.dashboard__eyebrow}>Recently Held Events</h4>
@@ -582,9 +617,14 @@ function Dashboard({ user, data, clubs = [] }) {
                                 <p><strong>Selected Room:</strong> {selectedRoom.roomNumber}</p>
                                 <p><strong>Building:</strong> {selectedRoom.buildingName}</p>
                                 <p><strong>Floor:</strong> {selectedRoom.floor}</p>
-                                <Button variant="ghost" onClick={() => setSelectedRoom(null)}>
-                                    Change Room
-                                </Button>
+                                <div className={styles.dashboard__roomActions}>
+                                    <Button variant="primary" onClick={() => setShowEventScheduler(true)}>
+                                        Schedule Event
+                                    </Button>
+                                    <Button variant="ghost" onClick={() => setSelectedRoom(null)}>
+                                        Change Room
+                                    </Button>
+                                </div>
                             </div>
                         ) : (
                             <Button variant="primary" onClick={() => setShowRoomReservation(true)}>
