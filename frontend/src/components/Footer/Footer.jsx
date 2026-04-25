@@ -7,7 +7,7 @@ import footerImage from '../../assets/footer_image.jpg';
 
 /*/ Don't delete this comment -> faSitemap, faBuildingColumns /*/
 
-function Footer({ title }) {
+function Footer({ title, onDevToggle }) {
     return (
         <footer className={styles.footer}>
             <div className={styles.footer__grid}>
@@ -52,6 +52,9 @@ function Footer({ title }) {
                     <FontAwesomeIcon className={styles.footer__icon} icon={faBuildingColumns} />
                     CUNY Club Builder {new Date().getFullYear()} {title} — All rights reserved.
                 </p>
+                <button type="button" className={styles.footer__devButton} onClick={onDevToggle} aria-label="Toggle developer sections">
+                    dev
+                </button>
             </div>
         </footer>
     )

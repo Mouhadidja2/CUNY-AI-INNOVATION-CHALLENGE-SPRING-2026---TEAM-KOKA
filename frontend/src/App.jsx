@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import Modal from './components/Modal/Modal'
+import Toast from './components/Toast/Toast'
 import Button from './components/Button/Button'
 import Home from './pages/home'
 import Club from './pages/club'
@@ -10,7 +11,8 @@ import AuthPage from './pages/auth'
 import Dashboard from './pages/Dashboard'
 import ClubsPage from './pages/clubs'
 import EventsOverview from './pages/events'
-import { clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
+import StartClubPage from './pages/startClub'
+import { BMCC_CAMPUS_ID, clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
 import { campuses } from './data/campuses'
 import { dashboardData } from './data/dashboardData'
 import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
@@ -57,6 +59,10 @@ function resolveRoute(pathname) {
         return { name: 'events' }
     }
 
+    if (cleanPath === '/start-club/new') {
+        return { name: 'startClubForm' }
+    }
+
     if (cleanPath.startsWith('/club/')) {
         return { name: 'club', clubId: decodeURIComponent(cleanPath.split('/')[2] || '') }
     }
@@ -79,6 +85,9 @@ function App() {
     const [signupRole, setSignupRole] = useState('student')
     const [signupAssignedClub, setSignupAssignedClub] = useState('')
     const [isHeaderHidden, setIsHeaderHidden] = useState(false)
+    const [isDevContentVisible, setIsDevContentVisible] = useState(false)
+    const [pendingPostAuthDestination, setPendingPostAuthDestination] = useState(null)
+    const [toastMessage, setToastMessage] = useState('')
 
     const requiresAssignedClub = (role) => ['club officer', 'club advisor', 'sga officer'].includes(role)
 
@@ -102,7 +111,9 @@ function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const goToAuth = (mode = 'login') => {
+    const goToAuth = (mode = 'login', postAuthDestination = null) => {
+        setPendingPostAuthDestination(postAuthDestination)
+
         if (!selectedCampusId) {
             setPendingAuthMode(mode)
             setPendingCampusDestination('/auth')
@@ -122,6 +133,14 @@ function App() {
         }
 
         navigate('/clubs')
+    }
+
+    const goToStartClub = () => {
+        goToAuth('login', 'start-club-form')
+    }
+
+    const goToManageClub = () => {
+        goToAuth('login', 'manage-club-dashboard')
     }
 
     const handleCampusPickedFromModal = (campusId) => {
@@ -199,6 +218,24 @@ function App() {
         setCurrentUser(loggedInUser)
         setStatusMessage(`Signed in as ${userRole}.`)
         event.currentTarget.reset()
+
+        if (pendingPostAuthDestination === 'start-club-form') {
+            setPendingPostAuthDestination(null)
+            navigate('/start-club/new')
+            return
+        }
+
+        if (pendingPostAuthDestination === 'manage-club-dashboard') {
+            setPendingPostAuthDestination(null)
+            if (dashboardRoles.includes(userRole)) {
+                navigate('/admin')
+            } else {
+                setToastMessage('Only club officers, club advisors, and SGA officers can manage clubs.')
+                navigate('/')
+            }
+            return
+        }
+
         navigate(dashboardRoles.includes(userRole) ? '/admin' : '/me')
     }
 
@@ -224,12 +261,36 @@ function App() {
         setSignupRole('student')
         setSignupAssignedClub('')
         event.currentTarget.reset()
+
+        if (pendingPostAuthDestination === 'start-club-form') {
+            setPendingPostAuthDestination(null)
+            navigate('/start-club/new')
+            return
+        }
+
+        if (pendingPostAuthDestination === 'manage-club-dashboard') {
+            setPendingPostAuthDestination(null)
+            if (dashboardRoles.includes(role)) {
+                navigate('/admin')
+            } else {
+                setToastMessage('Only club officers, club advisors, and SGA officers can manage clubs.')
+                navigate('/')
+            }
+            return
+        }
+
         navigate(dashboardRoles.includes(role) ? '/admin' : '/me')
     }
 
     const route = resolveRoute(locationPath)
-    const currentClub = route.name === 'club' ? visibleClubs.find((club) => club.id === route.clubId) || null : null
+    const currentClub = route.name === 'club' ? clubDirectory.find((club) => club.id === route.clubId) || null : null
     const canAccessDashboard = currentUser && dashboardRoles.includes(currentUser.role)
+
+    useEffect(() => {
+        if (route.name === 'club' && currentClub && selectedCampusId !== currentClub.campus) {
+            setSelectedCampusId(currentClub.campus)
+        }
+    }, [route.name, currentClub, selectedCampusId])
 
     const renderRoute = () => {
         if (route.name === 'home') {
@@ -242,12 +303,14 @@ function App() {
                     events={visibleEvents}
                     searchQuery={searchQuery}
                     onSearchQueryChange={setSearchQuery}
-                    onOpenSignup={() => goToAuth('signup')}
-                    onOpenLogin={() => goToAuth('login')}
+                    onOpenSignup={goToStartClub}
+                    onOpenLogin={goToManageClub}
                     onJoinClub={goToClubs}
+                    onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
                     onViewAllClubs={() => navigate('/clubs')}
                     onViewAllEvents={() => navigate('/events')}
                     onLightboxStateChange={setIsHeaderHidden}
+                    showDevSections={isDevContentVisible}
                 />
             )
         }
@@ -303,11 +366,15 @@ function App() {
         }
 
         if (route.name === 'clubs') {
-            return <ClubsPage selectedCampus={selectedCampus} clubs={visibleClubs} events={visibleEvents} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} onViewAllClubs={() => navigate('/clubs')} onViewAllEvents={() => navigate('/events')} />
+            return <ClubsPage selectedCampus={selectedCampus} clubs={visibleClubs} events={visibleEvents} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} onViewAllClubs={() => navigate('/clubs')} onViewAllEvents={() => navigate('/events')} onBackHome={() => navigate('/')} />
         }
 
         if (route.name === 'events') {
             return <EventsOverview events={visibleEvents} selectedCampus={selectedCampus} onBackHome={() => navigate('/')} />
+        }
+
+        if (route.name === 'startClubForm') {
+            return <StartClubPage currentUser={currentUser} selectedCampus={selectedCampus} onRequireAuth={goToStartClub} />
         }
 
         return (
@@ -319,12 +386,14 @@ function App() {
                 events={visibleEvents}
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
-                onOpenSignup={() => goToAuth('signup')}
-                onOpenLogin={() => goToAuth('login')}
+                onOpenSignup={goToStartClub}
+                onOpenLogin={goToManageClub}
                 onJoinClub={goToClubs}
+                onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
                 onViewAllClubs={() => navigate('/clubs')}
                 onViewAllEvents={() => navigate('/events')}
                 onLightboxStateChange={setIsHeaderHidden}
+                showDevSections={isDevContentVisible}
             />
         )
     }
@@ -336,7 +405,7 @@ function App() {
                     <Header
                         title={appTitle}
                         logoSrc={resolveSiteLogo()}
-                        showTitle={Boolean(selectedCampusId)}
+                        showTitle={Boolean(selectedCampusId) && selectedCampusId !== BMCC_CAMPUS_ID}
                         searchQuery={searchQuery}
                         onSearchChange={handleHeaderSearchChange}
                         onClubsClick={goToClubs}
@@ -350,8 +419,9 @@ function App() {
                 {renderRoute()}
 
                 {statusMessage ? <p className={styles.app__contentStatus}>{statusMessage}</p> : null}
+                <Toast message={toastMessage} onClose={() => setToastMessage('')} />
 
-                <Footer title={appTitle} />
+                <Footer title={appTitle} onDevToggle={() => setIsDevContentVisible((visible) => !visible)} />
             </div>
 
             <Modal

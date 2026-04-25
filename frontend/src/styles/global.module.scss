@@ -91,11 +91,19 @@
     --spacing-base: 1rem;
 }
 
+:global(html),
+:global(body),
+:global(#root) {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
 .page {
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
+    overflow-x: clip;
 
 
 }
@@ -107,11 +115,13 @@
 .app__shell {
     // width: min(1126px, 100%);
     margin: 0 auto;
+    width: min(100%, 1360px);
     padding: 32px;
     display: flex;
     flex-direction: column;
     gap: 24px;
     box-sizing: border-box;
+    overflow-x: clip;
 }
 
 .app__features {

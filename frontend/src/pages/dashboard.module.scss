@@ -40,3 +40,62 @@
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 0.8rem;
 }
+
+.dashboard__actionsSection {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.dashboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.dashboard__foodOrderPanel {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.dashboard__foodOrderForm {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.dashboard__field {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--color-charcoal);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+}
+
+.dashboard__input,
+.dashboard__textarea {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    font: inherit;
+    color: var(--color-black);
+    background: var(--color-white);
+}
+
+.dashboard__textarea {
+    resize: vertical;
+}
+
+.dashboard__orderList {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.dashboard__orderItems {
+    margin: 0;
+    padding-left: 1rem;
+    color: var(--color-slate);
+    display: grid;
+    gap: 0.3rem;
+}
