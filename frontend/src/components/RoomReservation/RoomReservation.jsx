@@ -9,49 +9,49 @@ import {
     buildingOptions,
 } from '../../data/roomData.js'
 import { Modal } from '../Modal/Modal.jsx'
-import { Button } from '../Button/Button.jsx'
+import Button from '../Button/Button.jsx'
 import styles from './RoomReservation.module.scss'
 
 // Font Awesome icons as SVG components
 const ChevronUpIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-        <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
+        <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
     </svg>
 )
 
 const ChevronDownIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-        <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+        <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
     </svg>
 )
 
 const BuildingIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-        <path d="M12 2L2 7v15h20V7L12 2zm0 2.5L18.5 8H5.5L12 4.5zM4 9h16v11H4V9z"/>
+        <path d="M12 2L2 7v15h20V7L12 2zm0 2.5L18.5 8H5.5L12 4.5zM4 9h16v11H4V9z" />
     </svg>
 )
 
 const FloorIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-        <path d="M4 4h16v4H4V4zm0 6h16v4H4v-4zm0 6h16v4H4v-4z"/>
+        <path d="M4 4h16v4H4V4zm0 6h16v4H4v-4zm0 6h16v4H4v-4z" />
     </svg>
 )
 
 const RoomIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
     </svg>
 )
 
 const CheckIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
     </svg>
 )
 
 const MagicIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-        <path d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2 8.6 4.5 10 7 7.5 5.6zm12.8 9.7l-1.3 2.3 2.3 1.3-2.3 1.3 1.3 2.3-2.3-1.3-1.3 2.3-1.3-2.3-2.3 1.3 1.3-2.3-2.3-1.3 2.3-1.3-1.3-2.3 2.3 1.3 1.3-2.3 1.3 2.3zm-9.3-4.3l1.4-2.5L10 7l2.5 1.4L15 7l-1.4 2.5L15 12l-2.5-1.4L10 12l1.4-2.5z"/>
+        <path d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2 8.6 4.5 10 7 7.5 5.6zm12.8 9.7l-1.3 2.3 2.3 1.3-2.3 1.3 1.3 2.3-2.3-1.3-1.3 2.3-1.3-2.3-2.3 1.3 1.3-2.3-2.3-1.3 2.3-1.3-1.3-2.3 2.3 1.3 1.3-2.3 1.3 2.3zm-9.3-4.3l1.4-2.5L10 7l2.5 1.4L15 7l-1.4 2.5L15 12l-2.5-1.4L10 12l1.4-2.5z" />
     </svg>
 )
 
@@ -284,9 +284,8 @@ export function RoomReservation({
                                     <button
                                         key={room.id}
                                         type="button"
-                                        className={`${styles.roomCard} ${getStatusClass(room.status)} ${
-                                            selectedRoom?.id === room.id ? styles.roomCard__selected : ''
-                                        }`}
+                                        className={`${styles.roomCard} ${getStatusClass(room.status)} ${selectedRoom?.id === room.id ? styles.roomCard__selected : ''
+                                            }`}
                                         onClick={() => handleRoomSelect(room)}
                                         disabled={room.status !== ROOM_STATUS.AVAILABLE}
                                     >
