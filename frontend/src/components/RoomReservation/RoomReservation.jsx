@@ -8,7 +8,7 @@ import {
     autoAssignRoom,
     buildingOptions,
 } from '../../data/roomData.js'
-import { Modal } from '../Modal/Modal.jsx'
+import Modal from '../Modal/Modal.jsx'
 import Button from '../Button/Button.jsx'
 import styles from './RoomReservation.module.scss'
 
