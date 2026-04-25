@@ -1,0 +1,131 @@
+.authPortal {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.authPortal--modal {
+    gap: 1rem;
+}
+
+.authPortal__header {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.authPortal__eyebrow {
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    color: var(--color-accent);
+    font-weight: 700;
+}
+
+.authPortal__title {
+    margin: 0;
+    font-size: clamp(var(--font-size-xl), 3vw, var(--font-size-3xl));
+    color: var(--color-black);
+}
+
+.authPortal__description {
+    margin: 0;
+    color: var(--color-slate);
+    line-height: 1.6;
+}
+
+.authPortal__switch {
+    display: inline-flex;
+    gap: 0.5rem;
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: rgba(22, 27, 45, 0.06);
+    width: fit-content;
+}
+
+.authPortal__switchButton {
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    padding: 0.75rem 1.05rem;
+    color: var(--color-slate);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.authPortal__switchButton--active {
+    background: var(--color-white);
+    color: var(--color-black);
+    box-shadow: var(--shadow-sm);
+}
+
+.authPortal__body {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+}
+
+.authPortal__form,
+.authPortal__sidePanel {
+    border: 1px solid var(--color-dove);
+    border-radius: 1.5rem;
+    background: var(--color-white);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.authPortal__form {
+    display: grid;
+    gap: 1rem;
+}
+
+.authPortal__field {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.authPortal__label,
+.authPortal__sideTitle {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-black);
+}
+
+.authPortal__input {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.85rem;
+    padding: 0.9rem 1rem;
+    font: inherit;
+    background: var(--color-white);
+    color: var(--color-black);
+}
+
+.authPortal__input:focus {
+    outline: 2px solid rgba(40, 73, 214, 0.2);
+    border-color: var(--color-accent);
+}
+
+.authPortal__sidePanel {
+    display: grid;
+    gap: 0.95rem;
+    align-content: start;
+    background: linear-gradient(180deg, rgba(40, 73, 214, 0.06), rgba(255, 255, 255, 0.98));
+}
+
+.authPortal__list {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: grid;
+    gap: 0.55rem;
+    color: var(--color-slate);
+    line-height: 1.5;
+}
+
+.authPortal__listItem {
+    margin: 0;
+}
+
+@media (max-width: 920px) {
+    .authPortal__body {
+        grid-template-columns: 1fr;
+    }
+}

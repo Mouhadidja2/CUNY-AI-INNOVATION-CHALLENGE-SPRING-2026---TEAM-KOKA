@@ -1,13 +1,36 @@
+import Button from '../Button/Button'
 import styles from './hero.module.scss'
 
-function Hero({ title, imageSrc }) {
+function Hero({
+    slogan,
+    primaryButtonLabel,
+    secondaryButtonLabel,
+    tertiaryButtonLabel,
+    onPrimaryAction,
+    onSecondaryAction,
+    onTertiaryAction,
+}) {
     return (
-        <section className={styles.hero} aria-labelledby="hero-title">
-            <div className={styles.heroCopy}>
-                <h2 id="hero-title">Welcome to {title}</h2>
-                <p>Build your experience one component at a time.</p>
+        <section className={styles.hero} aria-labelledby="hero-slogan">
+            <div className={styles.hero__copy}>
+                <h2 className={styles.hero__slogan} id="hero-slogan">
+                    {slogan}
+                </h2>
+
+                <div className={styles.hero__actions}>
+                    <Button variant="primary" onClick={onPrimaryAction}>
+                        {primaryButtonLabel}
+                    </Button>
+                    <Button variant="ghost" onClick={onSecondaryAction}>
+                        {secondaryButtonLabel}
+                    </Button>
+                    {tertiaryButtonLabel ? (
+                        <Button variant="ghost" onClick={onTertiaryAction}>
+                            {tertiaryButtonLabel}
+                        </Button>
+                    ) : null}
+                </div>
             </div>
-            <img className={styles.heroImage} src={imageSrc} alt="Abstract hero artwork" />
         </section>
     )
 }

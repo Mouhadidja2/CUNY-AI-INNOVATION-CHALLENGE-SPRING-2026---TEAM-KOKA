@@ -1,0 +1,432 @@
+.dashboard {
+    border: 1px solid var(--color-dove);
+    border-radius: 14px;
+    background: var(--color-white);
+    padding: 1.25rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.dashboard__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.dashboard__eyebrow {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-pewter);
+}
+
+.dashboard__title {
+    margin: 0.25rem 0 0;
+    color: var(--color-black);
+    font-size: clamp(var(--font-size-l), 2.2vw, var(--font-size-2xl));
+}
+
+.dashboard__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.65rem;
+}
+
+.dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.8rem;
+}
+
+.dashboard__actionsSection {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.dashboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.dashboard__foodOrderPanel {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.dashboard__foodOrderForm {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.dashboard__field {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--color-charcoal);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+}
+
+.dashboard__input,
+.dashboard__textarea {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    font: inherit;
+    color: var(--color-black);
+    background: var(--color-white);
+}
+
+.dashboard__textarea {
+    resize: vertical;
+}
+
+.dashboard__orderList {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.dashboard__orderItems {
+    margin: 0;
+    padding-left: 1rem;
+    color: var(--color-slate);
+    display: grid;
+    gap: 0.3rem;
+}
+
+.dashboard__foodOrderTypeSelector {
+    display: grid;
+    gap: 1rem;
+}
+
+.dashboard__foodOrderTypeButtons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.dashboard__foodOrderTypeOption {
+    border: 2px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1.5rem;
+    background: var(--color-white);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.dashboard__foodOrderTypeOption:hover {
+    border-color: var(--color-accent);
+    background: rgba(0, 102, 204, 0.05);
+}
+
+.dashboard__foodOrderTypeTitle {
+    margin: 0 0 0.5rem;
+    font-size: var(--font-size-l);
+    color: var(--color-black);
+}
+
+.dashboard__foodOrderTypeDescription {
+    margin: 0;
+    font-size: var(--font-size-s);
+    color: var(--color-slate);
+}
+
+.dashboard__approvalNotice {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    color: var(--color-charcoal);
+    font-size: var(--font-size-s);
+}
+
+.dashboard__formActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Club Banner and Header Styles */
+.dashboard__clubBanner {
+    width: 100%;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--color-dove);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard__bannerImage {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.dashboard__clubName {
+    margin: 0.25rem 0 0;
+    color: var(--color-black);
+    font-size: clamp(var(--font-size-xl), 3vw, var(--font-size-3xl));
+    font-weight: 700;
+}
+
+/* Panel and Events Feed Styles */
+.dashboard__panel {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    background: var(--color-white);
+}
+
+.dashboard__panelTitle {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-l);
+    font-weight: 700;
+}
+
+.dashboard__eventsFeed {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.dashboard__eventSection {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.dashboard__eventCards {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.dashboard__eventCard {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    display: grid;
+    gap: 0.4rem;
+}
+
+.dashboard__eventTitle {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+}
+
+.dashboard__eventTime {
+    margin: 0;
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+}
+
+.dashboard__eventList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.dashboard__eventItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard__eventName {
+    font-weight: 600;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+}
+
+.dashboard__emptyState {
+    margin: 0;
+    color: var(--color-slate);
+    font-style: italic;
+    padding: 1rem;
+    text-align: center;
+}
+
+/* Demo Mode Styles */
+.dashboard__demoPanel {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1rem;
+    background: var(--color-white);
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+}
+
+.dashboard__demoList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.dashboard__demoItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.7);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.dashboard__demoMeta {
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+.dashboard__demoOrderEvent {
+    display: block;
+    font-weight: 600;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+    margin-bottom: 0.25rem;
+}
+
+.dashboard__demoOrderItems {
+    display: block;
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+}
+
+.dashboard__statusApproved {
+    color: #16a34a;
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    background: rgba(22, 163, 74, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+}
+
+.dashboard__statusDenied {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    background: rgba(220, 38, 38, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+}
+
+/* TBD Events Voting */
+.dashboard__tbdEvents {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.dashboard__tbdEventCard {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    display: grid;
+    gap: 0.5rem;
+}
+
+.dashboard__tbdEventTitle {
+    font-weight: 600;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+}
+
+.dashboard__voteBar {
+    height: 8px;
+    background: var(--color-ghost);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.dashboard__voteFill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 999px;
+    transition: width 0.5s ease;
+}
+
+.dashboard__voteCount {
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+/* Budget Proposal Form Styles */
+.dashboard__budgetForm {
+    display: grid;
+    gap: 1.5rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.dashboard__budgetSection {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.dashboard__budgetSectionTitle {
+    margin: 0 0 0.5rem;
+    color: var(--color-black);
+    font-size: var(--font-size-m);
+    font-weight: 700;
+    border-bottom: 2px solid var(--color-accent);
+    padding-bottom: 0.5rem;
+}
+
+.dashboard__budgetRow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.dashboard__budgetNote {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard__budgetNote p {
+    margin: 0;
+    font-size: var(--font-size-s);
+    color: var(--color-charcoal);
+}
+
+/* Modal wide panel override */
+.modal__panel--wide {
+    max-width: 800px;
+    width: 90vw;
+}
