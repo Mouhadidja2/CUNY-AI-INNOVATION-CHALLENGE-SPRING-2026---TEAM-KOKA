@@ -32,7 +32,7 @@ function Footer({ title, onDevToggle }) {
                     <ul className={styles.footer__list}>
                         <li className={styles.footer__item}> About </li>
                         <li className={styles.footer__item}> Dashboard </li>
-                    </ul>
+                    </`ul>
 
                     
                 </section>
