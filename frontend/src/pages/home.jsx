@@ -4,6 +4,7 @@ import { faRocket, faScrewdriverWrench, faUsers, faXmark } from '@fortawesome/fr
 import Hero from '../components/Hero/Hero'
 import Button from '../components/Button/Button'
 import ClubsHub from '../components/ClubsHub/ClubsHub'
+import RegisteredEvents from '../components/RegisteredEvents/RegisteredEvents'
 import styles from './home.module.scss'
 
 const mediaPool = Object.values(
@@ -52,6 +53,10 @@ function Home({
     onViewAllEvents,
     onLightboxStateChange,
     showDevSections = false,
+    currentUser,
+    registeredEvents,
+    onMarkAttended,
+    onAddFeedback,
 }) {
     const [lightboxImage, setLightboxImage] = useState(null)
 
@@ -135,6 +140,14 @@ function Home({
             <section className={styles.home__quoteSection} aria-label="Project quote">
                 <h2 className={styles.home__quoteHeader}>{projectQuote}</h2>
             </section>
+
+            {currentUser && registeredEvents && registeredEvents.length > 0 ? (
+                <RegisteredEvents
+                    registrations={registeredEvents}
+                    onMarkAttended={onMarkAttended}
+                    onAddFeedback={onAddFeedback}
+                />
+            ) : null}
 
             {showDevSections ? (
                 <section className={styles.home__section} aria-labelledby="feature-cards-title">

@@ -31,6 +31,13 @@
     color: var(--color-blue);
 }
 
+.button--icon {
+    background-color: transparent;
+    border: none;
+    color: var(--color-blue);
+    padding: 0.5rem 0.65rem;
+}
+
 .button--full-width {
     width: 100%;
 }

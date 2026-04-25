@@ -12,7 +12,9 @@ import Dashboard from './pages/Dashboard'
 import ClubsPage from './pages/clubs'
 import EventsOverview from './pages/events'
 import StartClubPage from './pages/startClub'
+import SearchResults from './pages/searchResults'
 import { BMCC_CAMPUS_ID, clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
+import { initAttendanceLog, addAttendanceRecord } from './services/attendanceService'
 import { campuses } from './data/campuses'
 import { dashboardData } from './data/dashboardData'
 import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
@@ -59,6 +61,10 @@ function resolveRoute(pathname) {
         return { name: 'events' }
     }
 
+    if (cleanPath === '/search') {
+        return { name: 'search' }
+    }
+
     if (cleanPath === '/start-club/new') {
         return { name: 'startClubForm' }
     }
@@ -88,6 +94,13 @@ function App() {
     const [isDevContentVisible, setIsDevContentVisible] = useState(false)
     const [pendingPostAuthDestination, setPendingPostAuthDestination] = useState(null)
     const [toastMessage, setToastMessage] = useState('')
+    const [registeredEvents, setRegisteredEvents] = useState(() => {
+        try {
+            return JSON.parse(window.localStorage.getItem('registered-events') || '[]')
+        } catch {
+            return []
+        }
+    })
 
     const requiresAssignedClub = (role) => ['club officer', 'club advisor', 'sga officer'].includes(role)
 
@@ -158,10 +171,18 @@ function App() {
 
     const handleHeaderSearchChange = (nextQuery) => {
         setSearchQuery(nextQuery)
+    }
 
-        if (normalizePath(locationPath) !== '/') {
-            navigate('/')
+    const handleHeaderSearchSubmit = (query) => {
+        if (query.trim()) {
+            navigate('/search')
         }
+    }
+
+    const handleSignOut = () => {
+        setCurrentUser(null)
+        setStatusMessage('')
+        navigate('/')
     }
 
     const selectedCampus = campuses.find((campus) => campus.id === selectedCampusId) || null
@@ -195,7 +216,7 @@ function App() {
         role,
         assignedClub,
         email,
-        recentEvents: role === 'student' ? [...defaultUserProfile.recentEvents] : [],
+        recentEvents: [],
     })
 
     const handleLoginSubmit = (event) => {
@@ -216,6 +237,7 @@ function App() {
         const loggedInUser = buildUserProfile(derivedName, userRole, assignedClub, email)
 
         setCurrentUser(loggedInUser)
+        initAttendanceLog(loggedInUser)
         setStatusMessage(`Signed in as ${userRole}.`)
         event.currentTarget.reset()
 
@@ -257,6 +279,7 @@ function App() {
         const signedUpUser = buildUserProfile(name, role, assignedClub, email)
 
         setCurrentUser(signedUpUser)
+        initAttendanceLog(signedUpUser)
         setStatusMessage(`Account created for ${role}.`)
         setSignupRole('student')
         setSignupAssignedClub('')
@@ -292,6 +315,49 @@ function App() {
         }
     }, [route.name, currentClub, selectedCampusId])
 
+    const persistRegisteredEvents = (nextEvents) => {
+        setRegisteredEvents(nextEvents)
+        window.localStorage.setItem('registered-events', JSON.stringify(nextEvents))
+    }
+
+    const handleRsvp = (rsvpData) => {
+        const registration = {
+            id: `reg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            ...rsvpData,
+            registeredAt: new Date().toISOString(),
+            attended: false,
+            feedback: '',
+        }
+        const nextEvents = [...registeredEvents, registration]
+        persistRegisteredEvents(nextEvents)
+        setToastMessage(`RSVP confirmed for ${rsvpData.eventTitle}.`)
+    }
+
+    const handleMarkAttended = (registrationId) => {
+        const nextEvents = registeredEvents.map((reg) => {
+            if (reg.id === registrationId) {
+                if (currentUser) {
+                    addAttendanceRecord(currentUser, {
+                        eventTitle: reg.eventTitle,
+                        eventDate: reg.eventDate,
+                        clubName: reg.clubName,
+                    })
+                }
+                return { ...reg, attended: true }
+            }
+            return reg
+        })
+        persistRegisteredEvents(nextEvents)
+        setToastMessage('Attendance marked successfully.')
+    }
+
+    const handleAddFeedback = (registrationId, feedbackText) => {
+        const nextEvents = registeredEvents.map((reg) =>
+            reg.id === registrationId ? { ...reg, feedback: feedbackText } : reg
+        )
+        persistRegisteredEvents(nextEvents)
+    }
+
     const renderRoute = () => {
         if (route.name === 'home') {
             return (
@@ -311,6 +377,10 @@ function App() {
                     onViewAllEvents={() => navigate('/events')}
                     onLightboxStateChange={setIsHeaderHidden}
                     showDevSections={isDevContentVisible}
+                    currentUser={currentUser}
+                    registeredEvents={registeredEvents}
+                    onMarkAttended={handleMarkAttended}
+                    onAddFeedback={handleAddFeedback}
                 />
             )
         }
@@ -340,11 +410,11 @@ function App() {
         }
 
         if (route.name === 'club') {
-            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} />
+            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} onRsvp={handleRsvp} registeredEvents={registeredEvents} />
         }
 
         if (route.name === 'me') {
-            return <Me currentUser={currentUser} onOpenAuth={() => goToAuth('login')} onBackHome={() => navigate('/')} />
+            return <Me currentUser={currentUser} registeredEvents={registeredEvents} onOpenAuth={() => goToAuth('login')} onBackHome={() => navigate('/')} />
         }
 
         if (route.name === 'admin') {
@@ -371,6 +441,18 @@ function App() {
 
         if (route.name === 'events') {
             return <EventsOverview events={visibleEvents} selectedCampus={selectedCampus} onBackHome={() => navigate('/')} />
+        }
+
+        if (route.name === 'search') {
+            return (
+                <SearchResults
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
+                    allClubs={clubDirectory}
+                    onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
+                    onBackHome={() => navigate('/')}
+                />
+            )
         }
 
         if (route.name === 'startClubForm') {
@@ -408,11 +490,15 @@ function App() {
                         showTitle={Boolean(selectedCampusId) && selectedCampusId !== BMCC_CAMPUS_ID}
                         searchQuery={searchQuery}
                         onSearchChange={handleHeaderSearchChange}
+                        onSearchSubmit={handleHeaderSearchSubmit}
                         onClubsClick={goToClubs}
                         onAuthClick={() => goToAuth('login')}
                         themeMode={themeMode}
                         onThemeToggle={cycleThemeMode}
                         onHomeClick={() => navigate('/')}
+                        currentUser={currentUser}
+                        onSignOut={handleSignOut}
+                        onProfileClick={() => navigate('/me')}
                     />
                 ) : null}
 

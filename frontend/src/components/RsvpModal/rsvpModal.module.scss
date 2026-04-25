@@ -1,0 +1,225 @@
+.rsvpModal {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(0, 3, 30, 0.52);
+    animation: rsvpOverlayIn 0.2s ease;
+}
+
+@keyframes rsvpOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.rsvpModal__panel {
+    background: var(--color-white);
+    border: 1px solid var(--color-dove);
+    border-radius: 1.25rem;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+    padding: 1.75rem;
+    width: min(420px, 92vw);
+    display: grid;
+    gap: 1.25rem;
+    animation: rsvpPanelIn 0.25s ease;
+}
+
+@keyframes rsvpPanelIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rsvpModal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.rsvpModal__title {
+    margin: 0;
+    font-size: var(--font-size-l);
+    color: var(--color-black);
+}
+
+.rsvpModal__subtitle {
+    margin: 0.25rem 0 0;
+    font-size: var(--font-size-s);
+    color: var(--color-slate);
+}
+
+.rsvpModal__close {
+    border: 0;
+    background: transparent;
+    color: var(--color-slate);
+    font-size: var(--font-size-l);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.rsvpModal__close:hover {
+    color: var(--color-black);
+}
+
+/* Step indicator */
+.rsvpModal__steps {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.rsvpModal__stepDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-dove);
+    transition: background-color 0.2s ease, width 0.2s ease;
+}
+
+.rsvpModal__stepDot--active {
+    background: var(--color-blue);
+    width: 22px;
+    border-radius: 4px;
+}
+
+.rsvpModal__stepDot--done {
+    background: var(--color-azure);
+}
+
+/* Calendar picker grid */
+.rsvpModal__calendarGrid {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.rsvpModal__calendarOption {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.85rem;
+    background: var(--color-white);
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.12s ease;
+}
+
+.rsvpModal__calendarOption:hover {
+    border-color: var(--color-azure);
+    background: rgba(31, 92, 255, 0.04);
+    transform: translateY(-1px);
+}
+
+.rsvpModal__calendarIcon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: var(--font-size-m);
+    flex-shrink: 0;
+}
+
+.rsvpModal__calendarIcon--google {
+    background: #f1f3f4;
+    color: #4285f4;
+}
+
+.rsvpModal__calendarIcon--outlook {
+    background: #e8f0fe;
+    color: #0078d4;
+}
+
+.rsvpModal__calendarIcon--ical {
+    background: #fef2f0;
+    color: #e74c3c;
+}
+
+.rsvpModal__calendarLabel {
+    font-size: var(--font-size-s);
+}
+
+/* Recurrence options */
+.rsvpModal__recurrenceGrid {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.rsvpModal__recurrenceOption {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.85rem;
+    background: var(--color-white);
+    padding: 1rem;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.rsvpModal__recurrenceOption:hover {
+    border-color: var(--color-azure);
+    background: rgba(31, 92, 255, 0.04);
+}
+
+.rsvpModal__recurrenceTitle {
+    margin: 0;
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    color: var(--color-black);
+}
+
+.rsvpModal__recurrenceDescription {
+    margin: 0.25rem 0 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+}
+
+/* Confirmation */
+.rsvpModal__confirmation {
+    display: grid;
+    gap: 0.85rem;
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.rsvpModal__confirmIcon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    color: #2e7d32;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+}
+
+.rsvpModal__confirmTitle {
+    margin: 0;
+    font-size: var(--font-size-l);
+    color: var(--color-black);
+    font-weight: 700;
+}
+
+.rsvpModal__confirmText {
+    margin: 0;
+    font-size: var(--font-size-s);
+    color: var(--color-slate);
+    line-height: 1.5;
+}
+
+.rsvpModal__confirmActions {
+    display: flex;
+    gap: 0.65rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}

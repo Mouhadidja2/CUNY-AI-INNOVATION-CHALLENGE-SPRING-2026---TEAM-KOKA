@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Button from '../components/Button/Button'
+import RsvpModal from '../components/RsvpModal/RsvpModal'
 import styles from './club.module.scss'
 
 function getEventCardsPerPage(width) {
@@ -14,10 +15,10 @@ function getEventCardsPerPage(width) {
     return 1
 }
 
-function Club({ club, currentUser, onBackHome, onOpenAuth }) {
+function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEvents }) {
     const [activeTab, setActiveTab] = useState('about')
-    const [rsvpMessage, setRsvpMessage] = useState('')
     const [eventPage, setEventPage] = useState(0)
+    const [rsvpEvent, setRsvpEvent] = useState(null)
 
     if (!club) {
         return (
@@ -36,6 +37,42 @@ function Club({ club, currentUser, onBackHome, onOpenAuth }) {
     const totalEventPages = Math.max(1, Math.ceil(club.publicEvents.length / eventCardsPerPage))
     const activeEventPage = Math.min(eventPage, totalEventPages - 1)
     const visibleEvents = club.publicEvents.slice(activeEventPage * eventCardsPerPage, activeEventPage * eventCardsPerPage + eventCardsPerPage)
+
+    const isEventRegistered = (eventId) => {
+        return (registeredEvents || []).some((reg) => reg.eventId === eventId && reg.clubId === club.id)
+    }
+
+    const handleRsvpClick = (event) => {
+        if (!canRSVP) {
+            onOpenAuth()
+            return
+        }
+
+        if (isEventRegistered(event.id)) {
+            return
+        }
+
+        setRsvpEvent(event)
+    }
+
+    const handleRsvpComplete = (rsvpData) => {
+        if (onRsvp) {
+            onRsvp(rsvpData)
+        }
+    }
+
+    const handleHeroRsvpClick = () => {
+        if (!canRSVP) {
+            onOpenAuth()
+            return
+        }
+
+        // RSVP for the first public event if available
+        const firstEvent = club.publicEvents[0]
+        if (firstEvent && !isEventRegistered(firstEvent.id)) {
+            setRsvpEvent(firstEvent)
+        }
+    }
 
     return (
         <main className={styles.club}>
@@ -65,11 +102,10 @@ function Club({ club, currentUser, onBackHome, onOpenAuth }) {
                         <Button onClick={onBackHome} variant="ghost">
                             Back to home
                         </Button>
-                        <Button onClick={canRSVP ? () => setRsvpMessage(`RSVP saved for ${club.name}.`) : onOpenAuth} variant="primary">
+                        <Button onClick={handleHeroRsvpClick} variant="primary">
                             {canRSVP ? 'RSVP to a public event' : 'Sign in to RSVP'}
                         </Button>
                     </div>
-                    {rsvpMessage ? <p className={styles.club__status}>{rsvpMessage}</p> : null}
                 </article>
             </section>
 
@@ -163,24 +199,42 @@ function Club({ club, currentUser, onBackHome, onOpenAuth }) {
 
                 <div className={styles.club__eventCarousel}>
                     {club.publicEvents.length ? (
-                        visibleEvents.map((event) => (
-                            <article key={event.id} className={styles.club__eventCard}>
-                                <p className={styles.club__eventName}>{event.title}</p>
-                                <p className={styles.club__eventMeta}>{event.time}</p>
-                                <Button
-                                    disabled={!canRSVP}
-                                    variant={canRSVP ? 'primary' : 'ghost'}
-                                    onClick={() => setRsvpMessage(`RSVP saved for ${event.title}.`)}
-                                >
-                                    {canRSVP ? 'RSVP now' : 'Sign in to RSVP'}
-                                </Button>
-                            </article>
-                        ))
+                        visibleEvents.map((event) => {
+                            const registered = isEventRegistered(event.id)
+                            return (
+                                <article key={event.id} className={styles.club__eventCard}>
+                                    <p className={styles.club__eventName}>{event.title}</p>
+                                    <p className={styles.club__eventMeta}>{event.time}</p>
+                                    {registered ? (
+                                        <Button variant="ghost" disabled>
+                                            Registered ✓
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            disabled={!canRSVP}
+                                            variant={canRSVP ? 'primary' : 'ghost'}
+                                            onClick={() => handleRsvpClick(event)}
+                                        >
+                                            {canRSVP ? 'RSVP now' : 'Sign in to RSVP'}
+                                        </Button>
+                                    )}
+                                </article>
+                            )
+                        })
                     ) : (
                         <p className={styles.club__empty}>No public events have been posted yet.</p>
                     )}
                 </div>
             </section>
+
+            {rsvpEvent ? (
+                <RsvpModal
+                    event={rsvpEvent}
+                    club={club}
+                    onClose={() => setRsvpEvent(null)}
+                    onRsvpComplete={handleRsvpComplete}
+                />
+            ) : null}
         </main>
     )
 }

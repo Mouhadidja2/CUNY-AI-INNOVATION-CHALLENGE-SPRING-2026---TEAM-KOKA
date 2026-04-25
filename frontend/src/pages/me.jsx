@@ -1,7 +1,7 @@
 import Button from '../components/Button/Button'
 import styles from './me.module.scss'
 
-function Me({ currentUser, onOpenAuth, onBackHome }) {
+function Me({ currentUser, registeredEvents, onOpenAuth, onBackHome }) {
     if (!currentUser) {
         return (
             <main className={styles.me}>
@@ -15,6 +15,8 @@ function Me({ currentUser, onOpenAuth, onBackHome }) {
         )
     }
 
+    const hasRegistrations = registeredEvents && registeredEvents.length > 0
+
     return (
         <main className={styles.me}>
             <section className={styles.me__card}>
@@ -24,21 +26,19 @@ function Me({ currentUser, onOpenAuth, onBackHome }) {
                 {currentUser.assignedClub ? <p className={styles.me__meta}>Assigned club: {currentUser.assignedClub}</p> : null}
             </section>
 
-            <section className={styles.me__summary}>
-                <h3 className={styles.me__title}>Recent registered events</h3>
-                <div className={styles.me__summaryGrid}>
-                    {(currentUser.recentEvents || []).length ? (
-                        currentUser.recentEvents.map((event) => (
-                            <div key={event} className={styles.me__summaryItem}>
-                                <p className={styles.me__summaryLabel}>Event</p>
-                                <p className={styles.me__summaryValue}>{event}</p>
+            {hasRegistrations ? (
+                <section className={styles.me__summary}>
+                    <h3 className={styles.me__title}>Recent registered events</h3>
+                    <div className={styles.me__summaryGrid}>
+                        {registeredEvents.map((reg) => (
+                            <div key={reg.id} className={styles.me__summaryItem}>
+                                <p className={styles.me__summaryLabel}>{reg.clubName}</p>
+                                <p className={styles.me__summaryValue}>{reg.eventTitle}</p>
                             </div>
-                        ))
-                    ) : (
-                        <p className={styles.me__emptyState}>No events yet.</p>
-                    )}
-                </div>
-            </section>
+                        ))}
+                    </div>
+                </section>
+            ) : null}
 
             <section className={styles.me__events}>
                 <h3 className={styles.me__title}>What you can do</h3>

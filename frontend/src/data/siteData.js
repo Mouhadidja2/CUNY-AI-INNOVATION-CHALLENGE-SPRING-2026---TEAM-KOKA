@@ -132,18 +132,54 @@ function parseBmccClubDirectory(csvText) {
 
 export const bmccClubDirectory20252026 = parseBmccClubDirectory(bmccClubDirectoryCsvRaw)
 
+// Inject the AI Innovation Challenge special event into Computer Programming Club
+const cpcIndex = bmccClubDirectory20252026.findIndex((club) => club.id === 'computer-programming-club')
+if (cpcIndex !== -1) {
+    bmccClubDirectory20252026[cpcIndex].advisor = 'Dr. Azhar'
+    bmccClubDirectory20252026[cpcIndex].officers = ['Advisor: Dr. Azhar']
+    bmccClubDirectory20252026[cpcIndex].publicEvents = [
+        {
+            id: 'cpc-ai-innovation-day1',
+            title: 'AI Innovation Challenge: Tech for Change — Day 1',
+            time: 'April 24, 2026 · 9:00 AM – 9:00 PM',
+            fixedDate: '2026-04-24T09:00:00',
+            fixedEndDate: '2026-04-24T21:00:00',
+        },
+        {
+            id: 'cpc-ai-innovation-day2',
+            title: 'AI Innovation Challenge: Tech for Change — Day 2',
+            time: 'April 25, 2026 · 9:00 AM – 9:00 PM',
+            fixedDate: '2026-04-25T09:00:00',
+            fixedEndDate: '2026-04-25T21:00:00',
+        },
+        ...bmccClubDirectory20252026[cpcIndex].publicEvents,
+    ]
+}
+
 export const clubDirectory = bmccClubDirectory20252026
 
-export const trendingEvents = clubDirectory.slice(0, 4).map((club) => ({
-    id: `${club.id}-featured`,
-    title: club.publicEvents[0]?.title || 'Club Meeting',
-    clubId: club.id,
-    clubName: club.name,
-    campus: club.campus,
-    time: club.meetingTime,
-    blurb: club.shortDescription,
-    banner: club.banner,
-}))
+export const trendingEvents = [
+    {
+        id: 'cpc-ai-innovation-featured',
+        title: 'AI Innovation Challenge: Tech for Change',
+        clubId: 'computer-programming-club',
+        clubName: 'Computer Programming Club',
+        campus: BMCC_CAMPUS_ID,
+        time: 'April 24–25, 2026 · 9 AM – 9 PM',
+        blurb: 'A two-day hackathon-style challenge focused on AI for social good, hosted by the Computer Programming Club.',
+        banner: cunyBlueLogo,
+    },
+    ...clubDirectory.slice(0, 3).map((club) => ({
+        id: `${club.id}-featured`,
+        title: club.publicEvents[0]?.title || 'Club Meeting',
+        clubId: club.id,
+        clubName: club.name,
+        campus: club.campus,
+        time: club.meetingTime,
+        blurb: club.shortDescription,
+        banner: club.banner,
+    })),
+]
 
 export const homeCategories = [...new Set(clubDirectory.map((club) => club.category))]
 
