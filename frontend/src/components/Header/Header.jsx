@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faCircleHalfStroke, faSnowflake, faMoon, faUser } from '@fortawesome/free-solid-svg-icons';
 import Button from '../Button/Button';
+import Modal from '../Modal/Modal'
 import styles from './header.module.scss';
 
 function Header({ title, showTitle = true, logoSrc, searchQuery, onSearchChange, onSearchSubmit, onAuthClick, onClubsClick, themeMode, onThemeToggle, onHomeClick, currentUser, onSignOut, onProfileClick }) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const profileRef = useRef(null);
     const themeIcon = themeMode === 'snow' ? faSnowflake : themeMode === 'night' ? faMoon : faCircleHalfStroke;
     const themeAriaLabel = `Toggle theme mode. Current mode: ${themeMode}`;
 
@@ -24,20 +24,6 @@ function Header({ title, showTitle = true, logoSrc, searchQuery, onSearchChange,
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setIsProfileOpen(false);
-            }
-        };
-
-        if (isProfileOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isProfileOpen]);
 
     const handleSearchSubmit = (event) => {
         event.preventDefault();
@@ -93,53 +79,55 @@ function Header({ title, showTitle = true, logoSrc, searchQuery, onSearchChange,
                 </form>
 
                 {currentUser ? (
-                    <div className={styles.header__profile} ref={profileRef}>
+                    <div className={styles.header__profile}>
                         <button
                             type="button"
                             className={styles.header__avatar}
-                            onClick={() => setIsProfileOpen((open) => !open)}
-                            aria-label="Open profile menu"
+                            onClick={() => setIsProfileOpen(true)}
+                            aria-label="Open profile"
                             aria-expanded={isProfileOpen}
                         >
                             {userInitials || <FontAwesomeIcon icon={faUser} />}
                         </button>
-
-                        {isProfileOpen ? (
-                            <div className={styles.header__profilePopover}>
-                                <div className={styles.header__profileInfo}>
-                                    <p className={styles.header__profileName}>{currentUser.name}</p>
-                                    <p className={styles.header__profileRole}>{currentUser.role}</p>
-                                </div>
-                                <div className={styles.header__profileActions}>
-                                    <button
-                                        type="button"
-                                        className={styles.header__profileLink}
-                                        onClick={() => {
-                                            setIsProfileOpen(false);
-                                            onProfileClick();
-                                        }}
-                                    >
-                                        View Profile
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={styles.header__profileLink}
-                                        onClick={() => {
-                                            setIsProfileOpen(false);
-                                            onSignOut();
-                                        }}
-                                    >
-                                        Sign Out
-                                    </button>
-                                </div>
-                            </div>
-                        ) : null}
                     </div>
                 ) : (
                     <Button variant="primary" onClick={onAuthClick}>
                         Sign Up / Login
                     </Button>
                 )}
+
+                {currentUser ? (
+                    <Modal
+                        isOpen={isProfileOpen}
+                        title="Your profile"
+                        onClose={() => setIsProfileOpen(false)}
+                    >
+                        <p className={styles.header__profileName}>{currentUser.name}</p>
+                        <p className={styles.header__profileRole}>{currentUser.role}</p>
+                        {currentUser.email ? <p className={styles.header__profileRole}>{currentUser.email}</p> : null}
+                        {currentUser.assignedClub ? <p className={styles.header__profileRole}>Assigned club: {currentUser.assignedClub}</p> : null}
+                        <div className={styles.header__profileActions}>
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    setIsProfileOpen(false)
+                                    onProfileClick()
+                                }}
+                            >
+                                Go to /me
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    setIsProfileOpen(false)
+                                    onSignOut()
+                                }}
+                            >
+                                Sign out
+                            </Button>
+                        </div>
+                    </Modal>
+                ) : null}
 
                 <Button variant="icon" onClick={onThemeToggle} ariaLabel={themeAriaLabel}>
                     <FontAwesomeIcon className={styles.header__themeIcon} icon={themeIcon} />

@@ -48,14 +48,14 @@ function RsvpModal({ event, club, onClose, onRsvpComplete }) {
         }
 
         // Register the RSVP
-        const eventDate = getNextEventDate(club.meetingTime)
+        const eventDate = event.fixedDate ? new Date(event.fixedDate).toISOString() : getNextEventDate(club.meetingTime)
         onRsvpComplete({
             eventId: event.id,
             eventTitle: event.title,
             clubId: club.id,
             clubName: club.name,
             eventDate,
-            meetingTime: club.meetingTime,
+            meetingTime: event.time || club.meetingTime,
             calendarApp: selectedCalendar,
             isRecurring: recurring,
         })

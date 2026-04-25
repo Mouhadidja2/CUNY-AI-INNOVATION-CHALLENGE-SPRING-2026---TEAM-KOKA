@@ -14,7 +14,7 @@ import EventsOverview from './pages/events'
 import StartClubPage from './pages/startClub'
 import SearchResults from './pages/searchResults'
 import { BMCC_CAMPUS_ID, clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
-import { initAttendanceLog, addAttendanceRecord } from './services/attendanceService'
+import { initAttendanceLog, addAttendanceRecord, getAttendanceLog } from './services/attendanceService'
 import { campuses } from './data/campuses'
 import { dashboardData } from './data/dashboardData'
 import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
@@ -28,6 +28,9 @@ import styles from './styles/global.module.scss'
 
 const dashboardRoles = ['club officer', 'club advisor', 'sga officer']
 const themeModes = ['default', 'snow', 'night']
+
+// Demo mode - populates dashboard with fake content when true
+export const demoMode = true
 
 function normalizePath(pathname) {
     const cleanedPath = pathname.replace(/\/+$/, '')
@@ -115,6 +118,14 @@ function App() {
 
     const navigate = (nextPath) => {
         const nextLocation = normalizePath(nextPath)
+
+        const nextRoute = resolveRoute(nextLocation)
+        if (nextRoute.name === 'club') {
+            const nextClub = clubDirectory.find((club) => club.id === nextRoute.clubId) || null
+            if (nextClub && selectedCampusId !== nextClub.campus) {
+                setSelectedCampusId(nextClub.campus)
+            }
+        }
 
         if (window.location.pathname !== nextLocation) {
             window.history.pushState({}, '', nextLocation)
@@ -309,12 +320,6 @@ function App() {
     const currentClub = route.name === 'club' ? clubDirectory.find((club) => club.id === route.clubId) || null : null
     const canAccessDashboard = currentUser && dashboardRoles.includes(currentUser.role)
 
-    useEffect(() => {
-        if (route.name === 'club' && currentClub && selectedCampusId !== currentClub.campus) {
-            setSelectedCampusId(currentClub.campus)
-        }
-    }, [route.name, currentClub, selectedCampusId])
-
     const persistRegisteredEvents = (nextEvents) => {
         setRegisteredEvents(nextEvents)
         window.localStorage.setItem('registered-events', JSON.stringify(nextEvents))
@@ -349,6 +354,15 @@ function App() {
         })
         persistRegisteredEvents(nextEvents)
         setToastMessage('Attendance marked successfully.')
+    }
+
+    const handleClubUpdate = (updatedClub) => {
+        // Find the club in the directory and update it
+        const clubIndex = clubDirectory.findIndex((c) => c.id === updatedClub.id)
+        if (clubIndex !== -1) {
+            clubDirectory[clubIndex] = updatedClub
+            setToastMessage(`Club "${updatedClub.name}" has been updated.`)
+        }
     }
 
     const handleAddFeedback = (registrationId, feedbackText) => {
@@ -393,7 +407,6 @@ function App() {
                     signupRole={signupRole}
                     setSignupRole={(role) => {
                         setSignupRole(role)
-
                         if (!requiresAssignedClub(role)) {
                             setSignupAssignedClub('')
                         }
@@ -405,16 +418,30 @@ function App() {
                     onLoginSubmit={handleLoginSubmit}
                     onSignupSubmit={handleSignupSubmit}
                     onBackHome={() => navigate('/')}
+                    onChangeCampus={() => {
+                        setPendingCampusDestination('/auth')
+                        setIsCampusModalOpen(true)
+                    }}
                 />
             )
         }
 
         if (route.name === 'club') {
-            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} onRsvp={handleRsvp} registeredEvents={registeredEvents} />
+            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} onRsvp={handleRsvp} registeredEvents={registeredEvents} onClubUpdate={handleClubUpdate} setToastMessage={setToastMessage} />
         }
 
         if (route.name === 'me') {
-            return <Me currentUser={currentUser} registeredEvents={registeredEvents} onOpenAuth={() => goToAuth('login')} onBackHome={() => navigate('/')} />
+            const attendanceLog = currentUser ? getAttendanceLog(currentUser) : null
+            return (
+                <Me
+                    currentUser={currentUser}
+                    registeredEvents={registeredEvents}
+                    attendanceLog={attendanceLog}
+                    onOpenAuth={() => goToAuth('login')}
+                    onBackHome={() => navigate('/')}
+                    onSignOut={handleSignOut}
+                />
+            )
         }
 
         if (route.name === 'admin') {
@@ -432,7 +459,7 @@ function App() {
                 )
             }
 
-            return <Dashboard user={currentUser} data={dashboardData} />
+            return <Dashboard user={currentUser} data={dashboardData} clubs={visibleClubs} />
         }
 
         if (route.name === 'clubs') {

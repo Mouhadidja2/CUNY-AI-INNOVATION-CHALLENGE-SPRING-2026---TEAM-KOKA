@@ -154,7 +154,13 @@ export function generateIcsFile(event, club, isRecurring) {
 
     let dtStart, dtEnd, rruleDays
 
-    if (parsed) {
+    if (event.fixedDate) {
+        const startDate = new Date(event.fixedDate)
+        const endDate = event.fixedEndDate ? new Date(event.fixedEndDate) : new Date(startDate.getTime() + 60 * 60 * 1000)
+        dtStart = toICalDate(startDate)
+        dtEnd = toICalDate(endDate)
+        rruleDays = DAY_ABBR_ICAL[startDate.getDay()]
+    } else if (parsed) {
         const nextDate = getNextOccurrence(parsed.days[0], parsed.startHour, parsed.startMinute)
         const endDate = new Date(nextDate)
         endDate.setHours(parsed.endHour, parsed.endMinute, 0, 0)
@@ -225,7 +231,12 @@ export function buildGoogleCalendarUrl(event, club, isRecurring) {
 
     let startStr, endStr
 
-    if (parsed) {
+    if (event.fixedDate) {
+        const startDate = new Date(event.fixedDate)
+        const endDate = event.fixedEndDate ? new Date(event.fixedEndDate) : new Date(startDate.getTime() + 60 * 60 * 1000)
+        startStr = toGoogleDate(startDate)
+        endStr = toGoogleDate(endDate)
+    } else if (parsed) {
         const nextDate = getNextOccurrence(parsed.days[0], parsed.startHour, parsed.startMinute)
         const endDate = new Date(nextDate)
         endDate.setHours(parsed.endHour, parsed.endMinute, 0, 0)
@@ -268,7 +279,12 @@ export function buildOutlookCalendarUrl(event, club, isRecurring) {
 
     let startStr, endStr
 
-    if (parsed) {
+    if (event.fixedDate) {
+        const startDate = new Date(event.fixedDate)
+        const endDate = event.fixedEndDate ? new Date(event.fixedEndDate) : new Date(startDate.getTime() + 60 * 60 * 1000)
+        startStr = toOutlookDate(startDate)
+        endStr = toOutlookDate(endDate)
+    } else if (parsed) {
         const nextDate = getNextOccurrence(parsed.days[0], parsed.startHour, parsed.startMinute)
         const endDate = new Date(nextDate)
         endDate.setHours(parsed.endHour, parsed.endMinute, 0, 0)

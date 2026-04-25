@@ -20,6 +20,11 @@
     align-items: center;
 }
 
+.authPage__campusTagWrapper {
+    position: relative;
+    display: inline-block;
+}
+
 .authPage__campusTag {
     margin: 0;
     border: 1px solid var(--color-dove);
@@ -29,6 +34,45 @@
     font-size: var(--font-size-xs);
     font-weight: 700;
     background: var(--color-white);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.authPage__campusTag:hover {
+    background: var(--color-ghost);
+    border-color: var(--color-accent);
+}
+
+.authPage__tooltip {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 10;
+    background: var(--color-white);
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    box-shadow: var(--shadow-md);
+    min-width: 140px;
+}
+
+.authPage__tooltipButton {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.authPage__tooltipButton:hover {
+    background: var(--color-ghost);
 }
 
 .authPage__guardMessage {

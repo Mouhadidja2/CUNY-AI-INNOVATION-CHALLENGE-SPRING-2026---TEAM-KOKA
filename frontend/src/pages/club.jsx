@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPencil } from '@fortawesome/free-solid-svg-icons'
 import Button from '../components/Button/Button'
+import Modal from '../components/Modal/Modal'
 import RsvpModal from '../components/RsvpModal/RsvpModal'
 import styles from './club.module.scss'
 
@@ -15,10 +18,21 @@ function getEventCardsPerPage(width) {
     return 1
 }
 
-function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEvents }) {
+function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEvents, onClubUpdate, setToastMessage }) {
     const [activeTab, setActiveTab] = useState('about')
     const [eventPage, setEventPage] = useState(0)
     const [rsvpEvent, setRsvpEvent] = useState(null)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [bannerPreview, setBannerPreview] = useState(null)
+    const [editForm, setEditForm] = useState({
+        name: '',
+        description: '',
+        meetingTime: '',
+        location: '',
+        email: '',
+        advisor: '',
+        zoomLink: '',
+    })
 
     if (!club) {
         return (
@@ -52,6 +66,16 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
             return
         }
 
+        // Check if event is in the past
+        const eventDate = event.fixedDate ? new Date(event.fixedDate) : null
+        const now = new Date()
+        if (eventDate && eventDate < now) {
+            if (setToastMessage) {
+                setToastMessage('Cannot RSVP for events that have already passed.')
+            }
+            return
+        }
+
         setRsvpEvent(event)
     }
 
@@ -70,14 +94,81 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
         // RSVP for the first public event if available
         const firstEvent = club.publicEvents[0]
         if (firstEvent && !isEventRegistered(firstEvent.id)) {
+            // Check if event is in the past
+            const eventDate = firstEvent.fixedDate ? new Date(firstEvent.fixedDate) : null
+            const now = new Date()
+            if (eventDate && eventDate < now) {
+                if (setToastMessage) {
+                    setToastMessage('Cannot RSVP for events that have already passed.')
+                }
+                return
+            }
             setRsvpEvent(firstEvent)
         }
+    }
+
+    // Check if user can edit this club (officer or advisor of this club)
+    const canEditClub = currentUser && (
+        (currentUser.role === 'club officer' && currentUser.assignedClub === club.name) ||
+        (currentUser.role === 'club advisor' && currentUser.assignedClub === club.name) ||
+        currentUser.role === 'sga officer'
+    )
+
+    const handleEditClick = () => {
+        setEditForm({
+            name: club.name || '',
+            description: club.description || '',
+            meetingTime: club.meetingTime || '',
+            location: club.location || '',
+            email: club.email || '',
+            advisor: club.advisor || '',
+            zoomLink: club.zoomLink || '',
+        })
+        setBannerPreview(club.banner || null)
+        setShowEditModal(true)
+    }
+
+    const handleBannerChange = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setBannerPreview(reader.result)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleEditSubmit = (event) => {
+        event.preventDefault()
+        const updatedClub = {
+            ...club,
+            ...editForm,
+            banner: bannerPreview || club.banner,
+        }
+        if (onClubUpdate) {
+            onClubUpdate(updatedClub)
+        }
+        setShowEditModal(false)
     }
 
     return (
         <main className={styles.club}>
             <section className={styles.club__hero}>
-                <img className={styles.club__banner} src={club.banner} alt={`${club.name} banner`} />
+                <div className={styles.club__bannerContainer}>
+                    <img className={styles.club__banner} src={club.banner} alt={`${club.name} banner`} />
+                    {canEditClub && (
+                        <button
+                            type="button"
+                            className={styles.club__editButton}
+                            onClick={handleEditClick}
+                            aria-label="Edit club information"
+                        >
+                            <FontAwesomeIcon icon={faPencil} />
+                            <span>Edit</span>
+                        </button>
+                    )}
+                </div>
                 <article className={styles.club__intro}>
                     <p className={styles.club__eyebrow}>{club.category}</p>
                     <h2 className={styles.club__title}>{club.name}</h2>
@@ -235,6 +326,114 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                     onRsvpComplete={handleRsvpComplete}
                 />
             ) : null}
+
+            {/* Club Edit Modal */}
+            <Modal
+                isOpen={showEditModal}
+                title={`Edit ${club.name}`}
+                onClose={() => setShowEditModal(false)}
+            >
+                <form className={styles.club__editForm} onSubmit={handleEditSubmit}>
+                    <div className={styles.club__bannerUpload}>
+                        <label className={styles.club__field}>
+                            <span>Club Banner</span>
+                            {bannerPreview && (
+                                <img
+                                    src={bannerPreview}
+                                    alt="Banner preview"
+                                    className={styles.club__bannerPreview}
+                                />
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleBannerChange}
+                                className={styles.club__fileInput}
+                            />
+                        </label>
+                    </div>
+
+                    <label className={styles.club__field}>
+                        <span>Club Name</span>
+                        <input
+                            className={styles.club__input}
+                            type="text"
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            required
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Description</span>
+                        <textarea
+                            className={styles.club__textarea}
+                            value={editForm.description}
+                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                            rows="3"
+                            required
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Meeting Time</span>
+                        <input
+                            className={styles.club__input}
+                            type="text"
+                            value={editForm.meetingTime}
+                            onChange={(e) => setEditForm({ ...editForm, meetingTime: e.target.value })}
+                            required
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Location / Room</span>
+                        <input
+                            className={styles.club__input}
+                            type="text"
+                            value={editForm.location}
+                            onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                            required
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Club Email</span>
+                        <input
+                            className={styles.club__input}
+                            type="email"
+                            value={editForm.email}
+                            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Club Advisor</span>
+                        <input
+                            className={styles.club__input}
+                            type="text"
+                            value={editForm.advisor}
+                            onChange={(e) => setEditForm({ ...editForm, advisor: e.target.value })}
+                        />
+                    </label>
+
+                    <label className={styles.club__field}>
+                        <span>Zoom Link</span>
+                        <input
+                            className={styles.club__input}
+                            type="url"
+                            value={editForm.zoomLink}
+                            onChange={(e) => setEditForm({ ...editForm, zoomLink: e.target.value })}
+                            placeholder="https://..."
+                        />
+                    </label>
+
+                    <div className={styles.club__formActions}>
+                        <Button type="submit" variant="primary">Save Changes</Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                    </div>
+                </form>
+            </Modal>
         </main>
     )
 }
