@@ -19,6 +19,17 @@
     gap: 0.45rem;
 }
 
+.footer__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.footer__identityText {
+    display: grid;
+    gap: 0.2rem;
+}
+
 .footer__heading {
     margin: 0;
     font-size: var(--font-size-m);
@@ -39,13 +50,12 @@
 }
 
 .footer__image {
-    height: 150px;
-    border-radius: 14px;
-    width: auto;
-    max-width: 300px;
-    object-fit: contain;
+    width: clamp(190px, 26vw, 260px);
+    height: 72px;
+    border-radius: 999px;
+    object-fit: cover;
     display: block;
-}   
+}
 
 .footer__bar {
     padding-top: 0.7rem;
@@ -63,4 +73,15 @@
 
 .footer__icon {
     color: var(--color-blue);
+}
+
+@media (max-width: 640px) {
+    .footer__identity {
+        align-items: flex-start;
+    }
+
+    .footer__image {
+        width: 170px;
+        height: 62px;
+    }
 }

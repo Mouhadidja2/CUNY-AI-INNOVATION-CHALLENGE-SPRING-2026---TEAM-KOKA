@@ -15,16 +15,13 @@ function AuthPortal({
     onBackHome,
     variant = 'page',
 }) {
-    const showClubField = signupRole === 'club officer'
+    const showAssignedClubField = ['club officer', 'club advisor', 'sga officer'].includes(signupRole)
 
     return (
         <section className={`${styles.authPortal} ${styles[`authPortal--${variant}`]}`.trim()}>
             <header className={styles.authPortal__header}>
                 <p className={styles.authPortal__eyebrow}>Access portal</p>
                 <h2 className={styles.authPortal__title}>{mode === 'login' ? 'Sign in to continue' : 'Create your account'}</h2>
-                <p className={styles.authPortal__description}>
-                    Guests can browse. Students can register for events. Officers, advisors, and SGA can enter the management center.
-                </p>
             </header>
 
             <div className={styles.authPortal__switch}>
@@ -107,7 +104,7 @@ function AuthPortal({
                                 <option value="sga officer">SGA Officer</option>
                             </select>
                         </label>
-                        {showClubField ? (
+                        {showAssignedClubField ? (
                             <label className={styles.authPortal__field}>
                                 <span className={styles.authPortal__label}>Which club do you oversee?</span>
                                 <select

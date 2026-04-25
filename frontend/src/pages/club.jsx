@@ -31,6 +31,19 @@ function Club({ club, currentUser, onBackHome, onOpenAuth }) {
                     <p className={styles.club__meta}>
                         Meets {club.meetingTime} at {club.location}
                     </p>
+                    <ul className={styles.club__list}>
+                        {club.email ? (
+                            <li>
+                                Contact: <a href={`mailto:${club.email}`}>{club.email}</a>
+                            </li>
+                        ) : null}
+                        {club.advisor ? <li>Club advisor: {club.advisor}</li> : null}
+                        {club.zoomLink ? (
+                            <li>
+                                Zoom: <a href={club.zoomLink}>{club.zoomLink}</a>
+                            </li>
+                        ) : null}
+                    </ul>
                     <div className={styles.club__actions}>
                         <Button onClick={onBackHome} variant="ghost">
                             Back to home
@@ -72,6 +85,11 @@ function Club({ club, currentUser, onBackHome, onOpenAuth }) {
                     <div>
                         <h3 className={styles.club__panelTitle}>About this club</h3>
                         <p className={styles.club__description}>{club.description}</p>
+                        <p className={styles.club__meta}>Room: {club.location}</p>
+                        <p className={styles.club__meta}>Meeting info: {club.meetingTime}</p>
+                        {club.zoomLink ? <p className={styles.club__meta}>Zoom link / meeting: {club.zoomLink}</p> : null}
+                        {club.email ? <p className={styles.club__meta}>Club email: {club.email}</p> : null}
+                        {club.advisor ? <p className={styles.club__meta}>Club advisor: {club.advisor}</p> : null}
                         <ul className={styles.club__list}>
                             {club.officers.map((officer) => (
                                 <li key={officer}>{officer}</li>

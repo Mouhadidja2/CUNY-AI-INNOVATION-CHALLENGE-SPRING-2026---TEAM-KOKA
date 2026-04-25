@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass, faCircleHalfStroke, faSnowflake, faMoon } from '@fortawesome/free-solid-svg-icons';
 import Button from '../Button/Button';
 import styles from './header.module.scss';
 
-function Header({ title, logoSrc, searchQuery, onSearchChange, onAuthClick, onHomeClick }) {
+function Header({ title, showTitle = true, logoSrc, searchQuery, onSearchChange, onAuthClick, onClubsClick, themeMode, onThemeToggle, onHomeClick }) {
     const [isScrolled, setIsScrolled] = useState(false);
+    const themeIcon = themeMode === 'snow' ? faSnowflake : themeMode === 'night' ? faMoon : faCircleHalfStroke;
+    const themeAriaLabel = `Toggle theme mode. Current mode: ${themeMode}`;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -32,12 +36,19 @@ function Header({ title, logoSrc, searchQuery, onSearchChange, onAuthClick, onHo
                         Logo
                     </div>
                 )}
-                <h1 className={styles.header__title}>{title}</h1>
+                {showTitle ? <h1 className={styles.header__title}>{title}</h1> : null}
             </button>
 
             <div className={styles.header__right}>
+
+                <a className={styles.header__links} href="#"> About </a>
+                <a className={styles.header__links} href="#"> Campuses </a>
+                <button type="button" className={styles.header__links} onClick={onClubsClick}>
+                    Clubs
+                </button>
+
                 <label className={styles.header__searchWrap}>
-                    <span className={styles.header__searchLabel}>Search</span>
+                    <FontAwesomeIcon className={styles.header__searchIcon} icon={faMagnifyingGlass} />
                     <input
                         className={styles.header__searchInput}
                         type="search"
@@ -49,6 +60,10 @@ function Header({ title, logoSrc, searchQuery, onSearchChange, onAuthClick, onHo
 
                 <Button variant="primary" onClick={onAuthClick}>
                     Sign Up / Login
+                </Button>
+
+                <Button variant="ghost" onClick={onThemeToggle} ariaLabel={themeAriaLabel}>
+                    <FontAwesomeIcon className={styles.header__themeIcon} icon={themeIcon} />
                 </Button>
             </div>
         </header>

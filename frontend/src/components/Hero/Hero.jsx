@@ -1,7 +1,15 @@
 import Button from '../Button/Button'
 import styles from './hero.module.scss'
 
-function Hero({ slogan, primaryButtonLabel, secondaryButtonLabel, onPrimaryAction, onSecondaryAction }) {
+function Hero({
+    slogan,
+    primaryButtonLabel,
+    secondaryButtonLabel,
+    tertiaryButtonLabel,
+    onPrimaryAction,
+    onSecondaryAction,
+    onTertiaryAction,
+}) {
     return (
         <section className={styles.hero} aria-labelledby="hero-slogan">
             <div className={styles.hero__copy}>
@@ -16,6 +24,11 @@ function Hero({ slogan, primaryButtonLabel, secondaryButtonLabel, onPrimaryActio
                     <Button variant="ghost" onClick={onSecondaryAction}>
                         {secondaryButtonLabel}
                     </Button>
+                    {tertiaryButtonLabel ? (
+                        <Button variant="ghost" onClick={onTertiaryAction}>
+                            {tertiaryButtonLabel}
+                        </Button>
+                    ) : null}
                 </div>
             </div>
         </section>

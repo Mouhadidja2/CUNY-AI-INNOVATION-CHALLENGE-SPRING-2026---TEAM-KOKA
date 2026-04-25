@@ -9,19 +9,32 @@ function AuthPage({
     signupAssignedClub,
     setSignupAssignedClub,
     clubs,
+    selectedCampus,
     onLoginSubmit,
     onSignupSubmit,
     onBackHome,
-    onOpenModal,
 }) {
+    if (!selectedCampus) {
+        return (
+            <main className={styles.authPage}>
+                <section className={styles.authPage__card}>
+                    <h2 className={styles.authPage__title}>Select a campus first</h2>
+                    <p className={styles.authPage__guardMessage}>Choose your college on the home page before signing in or creating an account.</p>
+                    <div className={styles.authPage__back}>
+                        <button className={styles.authPage__backButton} type="button" onClick={onBackHome}>
+                            Go to home
+                        </button>
+                    </div>
+                </section>
+            </main>
+        )
+    }
+
     return (
         <main className={styles.authPage}>
             <section className={styles.authPage__card}>
                 <div className={styles.authPage__topline}>
-                    <div>
-                        <p className={styles.authPage__eyebrow}>Dedicated auth page</p>
-                        <h2 className={styles.authPage__title}>Sign in or create a role-aware account</h2>
-                    </div>
+                    <p className={styles.authPage__campusTag}>{selectedCampus.name}</p>
                     <div className={styles.authPage__back}>
                         <button className={styles.authPage__backButton} type="button" onClick={onBackHome}>
                             Back home
@@ -39,7 +52,6 @@ function AuthPage({
                     clubs={clubs}
                     onLoginSubmit={onLoginSubmit}
                     onSignupSubmit={onSignupSubmit}
-                    onViewFullPage={onOpenModal}
                     onBackHome={onBackHome}
                     variant="page"
                 />

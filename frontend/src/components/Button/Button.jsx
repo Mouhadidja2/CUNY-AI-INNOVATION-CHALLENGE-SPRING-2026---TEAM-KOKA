@@ -1,6 +1,6 @@
 import styles from './button.module.scss'
 
-function Button({ children, onClick, type = 'button', variant = 'primary', fullWidth = false, disabled = false }) {
+function Button({ children, onClick, type = 'button', variant = 'primary', fullWidth = false, disabled = false, ariaLabel }) {
     const variantClass = styles[`button--${variant}`] || styles['button--primary']
 
     return (
@@ -9,6 +9,7 @@ function Button({ children, onClick, type = 'button', variant = 'primary', fullW
             type={type}
             onClick={onClick}
             disabled={disabled}
+            aria-label={ariaLabel}
         >
             {children}
         </button>

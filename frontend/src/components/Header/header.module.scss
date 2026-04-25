@@ -42,6 +42,17 @@
     }
 }
 
+.header__links {
+    background: transparent;
+    border: 0;
+    text-decoration: none;
+    padding: 0px 16px;
+    color: var(--color-blue);
+    font-weight: 600;
+    font: inherit;
+    cursor: pointer;
+}
+
 .header__brand {
     display: flex;
     align-items: center;
@@ -54,19 +65,22 @@
     cursor: pointer;
 }
 
-.header__logoImage,
 .header__logoPlaceholder {
-    width: 42px;
-    height: 42px;
     border-radius: 10px;
 }
 
 .header__logoImage {
-    object-fit: cover;
-    border: 1px solid var(--color-dove);
+    height: 48px;
+    width: auto;
+    max-width: clamp(160px, 22vw, 260px);
+    object-fit: contain;
+    border: 0;
+    border-radius: 0;
 }
 
 .header__logoPlaceholder {
+    width: 42px;
+    height: 42px;
     border: 1px dashed var(--color-slate);
     display: inline-flex;
     align-items: center;
@@ -88,8 +102,19 @@
 }
 
 .header__searchWrap {
-    display: grid;
-    gap: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 10px;
+    padding: 0 0.55rem;
+    min-width: 210px;
+    background: var(--color-white);
+}
+
+.header__searchWrap:focus-within {
+    outline: 2px solid var(--color-sky);
+    border-color: var(--color-azure);
 }
 
 .header__searchLabel {
@@ -97,18 +122,27 @@
     color: var(--color-pewter);
 }
 
+.header__searchIcon {
+    color: var(--color-pewter);
+    font-size: var(--font-size-s);
+}
+
+.header__themeIcon {
+    font-size: var(--font-size-m);
+}
+
 .header__searchInput {
-    border: 1px solid var(--color-dove);
-    border-radius: 10px;
-    padding: 0.55rem 0.7rem;
-    min-width: 210px;
+    border: 0;
+    background: transparent;
+    padding: 0.55rem 0.15rem 0.55rem 0;
+    min-width: 0;
+    width: 100%;
     font-family: var(--font-family-base);
     font-size: var(--font-size-s);
 }
 
 .header__searchInput:focus {
-    outline: 2px solid var(--color-sky);
-    border-color: var(--color-azure);
+    outline: none;
 }
 
 @media (max-width: 860px) {
@@ -128,6 +162,11 @@
     }
 
     .header__searchInput {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .header__searchWrap {
         min-width: 0;
         width: 100%;
     }

@@ -23,6 +23,10 @@
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
+.modal__panel--wide {
+    width: min(94vw, 1100px);
+}
+
 .modal__header {
     display: flex;
     align-items: center;

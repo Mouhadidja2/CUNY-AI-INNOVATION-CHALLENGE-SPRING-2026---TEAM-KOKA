@@ -11,20 +11,36 @@ function Footer({ title }) {
     return (
         <footer className={styles.footer}>
             <div className={styles.footer__grid}>
-                <section className={styles.footer__section}>    
-                    <img className={styles.footer__image} src={footerImage} alt="Joe Biden" />
-                    <h3 className={styles.footer__heading}>{title}</h3>
-                    <p className={styles.footer__text}>Built and designed by Adrian, Kadidja, Kyame and Oswaldo.</p>
+                <section className={styles.footer__section}>
+                    <div className={styles.footer__identity}>
+                        <img className={styles.footer__image} src={footerImage} alt="Joe Biden" />
+                        <div className={styles.footer__identityText}>
+                            <h3 className={styles.footer__heading}>{title}</h3>
+                            <p className={styles.footer__text}>Built and designed by Adrian, Kadidja, Kyame and Oswaldo.</p>
+                        </div>
+                    </div>
                 </section>
 
                 <section className={styles.footer__section}>
                     <h3 className={styles.footer__heading}>Explore</h3>
                     <ul className={styles.footer__list}>
-                        <li className={styles.footer__item}>Features</li>
-                        <li className={styles.footer__item}>Pricing</li>
-                        <li className={styles.footer__item}>Documentation</li>
+                        <li className={styles.footer__item}>Search by interest</li>
+                        <li className={styles.footer__item}>Search by campus</li>
                     </ul>
                 </section>
+
+                <section className={styles.footer__section}>
+                    <h3 className={styles.footer__heading}>Explore</h3>
+                    <ul className={styles.footer__list}>
+                        <li className={styles.footer__item}> About </li>
+                        <li className={styles.footer__item}> Dashboard </li>
+                    </ul>
+
+                    
+                </section>
+
+                
+
             </div>
 
             <div className={styles.footer__bar}>

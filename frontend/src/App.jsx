@@ -2,20 +2,28 @@ import { useEffect, useState } from 'react'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import Modal from './components/Modal/Modal'
-import AuthPortal from './components/Auth/AuthPortal'
 import Button from './components/Button/Button'
 import Home from './pages/home'
 import Club from './pages/club'
 import Me from './pages/me'
 import AuthPage from './pages/auth'
 import Dashboard from './pages/Dashboard'
-import { clubDirectory, defaultUserProfile } from './data/siteData'
+import ClubsPage from './pages/clubs'
+import EventsOverview from './pages/events'
+import { clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
+import { campuses } from './data/campuses'
 import { dashboardData } from './data/dashboardData'
-// import logoPlaceholder from './assets/CUNY_Logo_Blue_RGB.png'
-import logoPlaceholder from './assets/BMCC-Club-Builder.png'
+import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
+import cunyClubBuilderSnow from './assets/CUNY-College-Club-Builder_snow.png'
+import cunyClubBuilderNight from './assets/CUNY-College-Club-Builder_night.png'
+import bmccClubBuilderDefault from './assets/BMCC-Club-Builder.png'
+import bmccClubBuilderSnow from './assets/BMCC-Club-Builder_snow.png'
+import bmccClubBuilderNight from './assets/BMCC-Club-Builder_night.png'
+import modalStyles from './components/Modal/modal.module.scss'
 import styles from './styles/global.module.scss'
 
 const dashboardRoles = ['club officer', 'club advisor', 'sga officer']
+const themeModes = ['default', 'snow', 'night']
 
 function normalizePath(pathname) {
     const cleanedPath = pathname.replace(/\/+$/, '')
@@ -41,6 +49,14 @@ function resolveRoute(pathname) {
         return { name: 'admin' }
     }
 
+    if (cleanPath === '/clubs') {
+        return { name: 'clubs' }
+    }
+
+    if (cleanPath === '/events') {
+        return { name: 'events' }
+    }
+
     if (cleanPath.startsWith('/club/')) {
         return { name: 'club', clubId: decodeURIComponent(cleanPath.split('/')[2] || '') }
     }
@@ -51,13 +67,20 @@ function resolveRoute(pathname) {
 function App() {
     const appTitle = 'Club Builder'
     const [locationPath, setLocationPath] = useState(window.location.pathname)
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
     const [authMode, setAuthMode] = useState('login')
+    const [pendingAuthMode, setPendingAuthMode] = useState('login')
+    const [pendingCampusDestination, setPendingCampusDestination] = useState('/auth')
+    const [isCampusModalOpen, setIsCampusModalOpen] = useState(false)
+    const [themeMode, setThemeMode] = useState('default')
     const [searchQuery, setSearchQuery] = useState('')
     const [statusMessage, setStatusMessage] = useState('')
+    const [selectedCampusId, setSelectedCampusId] = useState('')
     const [currentUser, setCurrentUser] = useState(null)
     const [signupRole, setSignupRole] = useState('student')
     const [signupAssignedClub, setSignupAssignedClub] = useState('')
+    const [isHeaderHidden, setIsHeaderHidden] = useState(false)
+
+    const requiresAssignedClub = (role) => ['club officer', 'club advisor', 'sga officer'].includes(role)
 
     useEffect(() => {
         const handlePopState = () => {
@@ -79,12 +102,74 @@ function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const openAuth = (mode = 'login') => {
+    const goToAuth = (mode = 'login') => {
+        if (!selectedCampusId) {
+            setPendingAuthMode(mode)
+            setPendingCampusDestination('/auth')
+            setIsCampusModalOpen(true)
+            return
+        }
+
         setAuthMode(mode)
-        setIsAuthModalOpen(true)
+        navigate('/auth')
     }
 
-    const closeAuth = () => setIsAuthModalOpen(false)
+    const goToClubs = () => {
+        if (!selectedCampusId) {
+            setPendingCampusDestination('/clubs')
+            setIsCampusModalOpen(true)
+            return
+        }
+
+        navigate('/clubs')
+    }
+
+    const handleCampusPickedFromModal = (campusId) => {
+        setSelectedCampusId(campusId)
+        setIsCampusModalOpen(false)
+
+        if (pendingCampusDestination === '/clubs') {
+            navigate('/clubs')
+            return
+        }
+
+        setAuthMode(pendingAuthMode)
+        navigate('/auth')
+    }
+
+    const handleHeaderSearchChange = (nextQuery) => {
+        setSearchQuery(nextQuery)
+
+        if (normalizePath(locationPath) !== '/') {
+            navigate('/')
+        }
+    }
+
+    const selectedCampus = campuses.find((campus) => campus.id === selectedCampusId) || null
+
+    const resolveSiteLogo = () => {
+        const logoByTheme = {
+            default: selectedCampusId === 'borough-of-manhattan-community-college' ? bmccClubBuilderDefault : cunyClubBuilderDefault,
+            snow: selectedCampusId === 'borough-of-manhattan-community-college' ? bmccClubBuilderSnow : cunyClubBuilderSnow,
+            night: selectedCampusId === 'borough-of-manhattan-community-college' ? bmccClubBuilderNight : cunyClubBuilderNight,
+        }
+
+        return logoByTheme[themeMode] || logoByTheme.default
+    }
+
+    const cycleThemeMode = () => {
+        const currentIndex = themeModes.indexOf(themeMode)
+        const nextTheme = themeModes[(currentIndex + 1) % themeModes.length]
+        setThemeMode(nextTheme)
+    }
+
+    const visibleClubs = selectedCampusId
+        ? clubDirectory.filter((club) => club.campus === selectedCampusId)
+        : []
+
+    const visibleEvents = selectedCampusId
+        ? trendingEvents.filter((event) => event.campus === selectedCampusId)
+        : []
 
     const buildUserProfile = (name, role, assignedClub, email) => ({
         name,
@@ -96,6 +181,13 @@ function App() {
 
     const handleLoginSubmit = (event) => {
         event.preventDefault()
+
+        if (!selectedCampusId) {
+            setStatusMessage('Select a campus first to continue to authentication.')
+            navigate('/')
+            return
+        }
+
         const formData = new FormData(event.currentTarget)
         const email = (formData.get('email') || '').toString()
         const userRole = (formData.get('role') || 'student').toString()
@@ -106,7 +198,6 @@ function App() {
 
         setCurrentUser(loggedInUser)
         setStatusMessage(`Signed in as ${userRole}.`)
-        closeAuth()
         event.currentTarget.reset()
         navigate(dashboardRoles.includes(userRole) ? '/admin' : '/me')
     }
@@ -114,17 +205,22 @@ function App() {
     const handleSignupSubmit = (event) => {
         event.preventDefault()
 
+        if (!selectedCampusId) {
+            setStatusMessage('Select a campus first to continue to authentication.')
+            navigate('/')
+            return
+        }
+
         const formData = new FormData(event.currentTarget)
         const name = (formData.get('name') || defaultUserProfile.name).toString()
         const email = (formData.get('email') || '').toString()
         const role = signupRole
-        const assignedClub = role === 'club officer' ? signupAssignedClub : ''
+        const assignedClub = requiresAssignedClub(role) ? signupAssignedClub : ''
 
         const signedUpUser = buildUserProfile(name, role, assignedClub, email)
 
         setCurrentUser(signedUpUser)
         setStatusMessage(`Account created for ${role}.`)
-        closeAuth()
         setSignupRole('student')
         setSignupAssignedClub('')
         event.currentTarget.reset()
@@ -132,19 +228,26 @@ function App() {
     }
 
     const route = resolveRoute(locationPath)
-    const currentClub = route.name === 'club' ? clubDirectory.find((club) => club.id === route.clubId) || null : null
+    const currentClub = route.name === 'club' ? visibleClubs.find((club) => club.id === route.clubId) || null : null
     const canAccessDashboard = currentUser && dashboardRoles.includes(currentUser.role)
 
     const renderRoute = () => {
         if (route.name === 'home') {
             return (
                 <Home
-                    clubs={clubDirectory}
+                    selectedCampus={selectedCampus}
+                    campuses={campuses}
+                    selectedCampusId={selectedCampusId}
+                    clubs={visibleClubs}
+                    events={visibleEvents}
                     searchQuery={searchQuery}
                     onSearchQueryChange={setSearchQuery}
-                    onOpenSignup={() => openAuth('signup')}
-                    onOpenLogin={() => openAuth('login')}
-                    onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
+                    onOpenSignup={() => goToAuth('signup')}
+                    onOpenLogin={() => goToAuth('login')}
+                    onJoinClub={goToClubs}
+                    onViewAllClubs={() => navigate('/clubs')}
+                    onViewAllEvents={() => navigate('/events')}
+                    onLightboxStateChange={setIsHeaderHidden}
                 />
             )
         }
@@ -155,24 +258,30 @@ function App() {
                     authMode={authMode}
                     setAuthMode={setAuthMode}
                     signupRole={signupRole}
-                    setSignupRole={setSignupRole}
+                    setSignupRole={(role) => {
+                        setSignupRole(role)
+
+                        if (!requiresAssignedClub(role)) {
+                            setSignupAssignedClub('')
+                        }
+                    }}
                     signupAssignedClub={signupAssignedClub}
                     setSignupAssignedClub={setSignupAssignedClub}
-                    clubs={clubDirectory}
+                    clubs={visibleClubs}
+                    selectedCampus={selectedCampus}
                     onLoginSubmit={handleLoginSubmit}
                     onSignupSubmit={handleSignupSubmit}
                     onBackHome={() => navigate('/')}
-                    onOpenModal={() => openAuth(authMode)}
                 />
             )
         }
 
         if (route.name === 'club') {
-            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => openAuth('login')} />
+            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} />
         }
 
         if (route.name === 'me') {
-            return <Me currentUser={currentUser} onOpenAuth={() => openAuth('login')} onBackHome={() => navigate('/')} />
+            return <Me currentUser={currentUser} onOpenAuth={() => goToAuth('login')} onBackHome={() => navigate('/')} />
         }
 
         if (route.name === 'admin') {
@@ -184,7 +293,7 @@ function App() {
                             <p className={styles.app__contentStatus}>
                                 Club officers, club advisors, and SGA officers can enter this area. Sign in with a permitted role to continue.
                             </p>
-                            <Button onClick={() => openAuth('login')}>Sign in</Button>
+                            <Button onClick={() => goToAuth('login')}>Sign in</Button>
                         </section>
                     </main>
                 )
@@ -193,20 +302,50 @@ function App() {
             return <Dashboard user={currentUser} data={dashboardData} />
         }
 
-        return <Home clubs={clubDirectory} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onOpenSignup={() => openAuth('signup')} onOpenLogin={() => openAuth('login')} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} />
+        if (route.name === 'clubs') {
+            return <ClubsPage selectedCampus={selectedCampus} clubs={visibleClubs} events={visibleEvents} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} onViewAllClubs={() => navigate('/clubs')} onViewAllEvents={() => navigate('/events')} />
+        }
+
+        if (route.name === 'events') {
+            return <EventsOverview events={visibleEvents} selectedCampus={selectedCampus} onBackHome={() => navigate('/')} />
+        }
+
+        return (
+            <Home
+                selectedCampus={selectedCampus}
+                campuses={campuses}
+                selectedCampusId={selectedCampusId}
+                clubs={visibleClubs}
+                events={visibleEvents}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                onOpenSignup={() => goToAuth('signup')}
+                onOpenLogin={() => goToAuth('login')}
+                onJoinClub={goToClubs}
+                onViewAllClubs={() => navigate('/clubs')}
+                onViewAllEvents={() => navigate('/events')}
+                onLightboxStateChange={setIsHeaderHidden}
+            />
+        )
     }
 
     return (
         <div className={`${styles.page} ${styles.app}`}>
             <div className={styles.app__shell}>
-                <Header
-                    title={appTitle}
-                    logoSrc={logoPlaceholder}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onAuthClick={() => openAuth('login')}
-                    onHomeClick={() => navigate('/')}
-                />
+                {!isHeaderHidden ? (
+                    <Header
+                        title={appTitle}
+                        logoSrc={resolveSiteLogo()}
+                        showTitle={Boolean(selectedCampusId)}
+                        searchQuery={searchQuery}
+                        onSearchChange={handleHeaderSearchChange}
+                        onClubsClick={goToClubs}
+                        onAuthClick={() => goToAuth('login')}
+                        themeMode={themeMode}
+                        onThemeToggle={cycleThemeMode}
+                        onHomeClick={() => navigate('/')}
+                    />
+                ) : null}
 
                 {renderRoute()}
 
@@ -215,28 +354,28 @@ function App() {
                 <Footer title={appTitle} />
             </div>
 
-            <Modal isOpen={isAuthModalOpen} title={authMode === 'login' ? 'Login' : 'Create account'} onClose={closeAuth}>
-                <AuthPortal
-                    mode={authMode}
-                    onModeChange={setAuthMode}
-                    signupRole={signupRole}
-                    onSignupRoleChange={(role) => {
-                        setSignupRole(role)
-                        if (role !== 'club officer') {
-                            setSignupAssignedClub('')
-                        }
-                    }}
-                    signupAssignedClub={signupAssignedClub}
-                    onSignupAssignedClubChange={setSignupAssignedClub}
-                    clubs={clubDirectory}
-                    onLoginSubmit={handleLoginSubmit}
-                    onSignupSubmit={handleSignupSubmit}
-                    onViewFullPage={() => {
-                        closeAuth()
-                        navigate('/auth')
-                    }}
-                    variant="modal"
-                />
+            <Modal
+                isOpen={isCampusModalOpen}
+                title="Search by college"
+                onClose={() => setIsCampusModalOpen(false)}
+                panelClassName={modalStyles['modal__panel--wide']}
+            >
+                <div className={styles.app__campusModalIntro}>
+                    <p className={styles.app__contentMeta}>Pick your campus to continue to clubs or authentication.</p>
+                </div>
+                <div className={styles.app__campusModalGrid}>
+                    {campuses.map((campus) => (
+                        <button
+                            key={campus.id}
+                            type="button"
+                            className={`${styles.app__campusModalButton} ${selectedCampusId === campus.id ? styles['app__campusModalButton--active'] : ''}`.trim()}
+                            onClick={() => handleCampusPickedFromModal(campus.id)}
+                            aria-label={campus.name}
+                        >
+                            <img className={styles.app__campusModalLogo} src={campus.logo} alt="" aria-hidden="true" />
+                        </button>
+                    ))}
+                </div>
             </Modal>
         </div>
     )

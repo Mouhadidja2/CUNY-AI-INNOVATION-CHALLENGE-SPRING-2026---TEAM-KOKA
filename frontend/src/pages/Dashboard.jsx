@@ -41,7 +41,7 @@ function Dashboard({ user, data }) {
         <main className={styles.dashboard}>
             <div className={styles.dashboard__header}>
                 <div>
-                    <p className={styles.dashboard__eyebrow}>Role-restricted dashboard</p>
+                    <p className={styles.dashboard__eyebrow}>Dashboard</p>
                     <h2 className={styles.dashboard__title}>Club operations overview</h2>
                     <p className={styles.dashboard__description}>
                         {user.role === 'sga officer'
