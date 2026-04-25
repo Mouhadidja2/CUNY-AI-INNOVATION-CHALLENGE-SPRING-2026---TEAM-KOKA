@@ -16,7 +16,7 @@ import SearchResults from './pages/searchResults'
 import { BMCC_CAMPUS_ID, clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
 import { initAttendanceLog, addAttendanceRecord, getAttendanceLog } from './services/attendanceService'
 import { campuses } from './data/campuses'
-import { dashboardData } from './data/dashboardData'
+import { fetchClubs as apiFetchClubs } from './services/api'
 import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
 import cunyClubBuilderSnow from './assets/CUNY-College-Club-Builder_snow.png'
 import cunyClubBuilderNight from './assets/CUNY-College-Club-Builder_night.png'
@@ -30,7 +30,7 @@ const dashboardRoles = ['club officer', 'club advisor', 'sga officer']
 const themeModes = ['default', 'snow', 'night']
 
 // Demo mode - populates dashboard with fake content when true
-export const demoMode = true
+export const demoMode = false
 
 function normalizePath(pathname) {
     const cleanedPath = pathname.replace(/\/+$/, '')
@@ -104,6 +104,7 @@ function App() {
             return []
         }
     })
+    const [backendClubs, setBackendClubs] = useState([])
 
     const requiresAssignedClub = (role) => ['club officer', 'club advisor', 'sga officer'].includes(role)
 
@@ -114,6 +115,12 @@ function App() {
 
         window.addEventListener('popstate', handlePopState)
         return () => window.removeEventListener('popstate', handlePopState)
+    }, [])
+
+    useEffect(() => {
+        apiFetchClubs()
+            .then((clubs) => setBackendClubs(clubs))
+            .catch(() => setBackendClubs([]))
     }, [])
 
     const navigate = (nextPath) => {
@@ -459,7 +466,7 @@ function App() {
                 )
             }
 
-            return <Dashboard user={currentUser} data={dashboardData} clubs={visibleClubs} />
+            return <Dashboard user={currentUser} clubs={visibleClubs} backendClubs={backendClubs} />
         }
 
         if (route.name === 'clubs') {
