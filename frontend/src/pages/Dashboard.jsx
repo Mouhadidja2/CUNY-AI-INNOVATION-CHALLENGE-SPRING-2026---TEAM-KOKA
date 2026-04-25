@@ -8,6 +8,7 @@ import { demoMode } from '../App'
 import styles from './dashboard.module.scss'
 import { slugify } from '../utils/slugify.js'
 import RoomReservation from '../components/RoomReservation/RoomReservation.jsx'
+import EventScheduler from '../components/EventScheduler/EventScheduler.jsx'
 
 // Demo data for BMCC Programming Club
 const demoRecentEvents = [
@@ -70,6 +71,17 @@ function Dashboard({ user, data, clubs = [] }) {
     // Room reservation state
     const [showRoomReservation, setShowRoomReservation] = useState(false)
     const [selectedRoom, setSelectedRoom] = useState(null)
+
+    // Event scheduler state
+    const [showEventScheduler, setShowEventScheduler] = useState(false)
+    const [clubEvents, setClubEvents] = useState(() => {
+        try {
+            const allEvents = JSON.parse(window.localStorage.getItem('club-events') || '[]')
+            return allEvents
+        } catch {
+            return []
+        }
+    })
 
     // Sync selected club when forced club changes
     const targetClub = forcedClub || fallbackClub
@@ -443,8 +455,15 @@ function Dashboard({ user, data, clubs = [] }) {
 
                 {activeAction === 'Club events' ? (
                     <section className={styles.dashboard__panel}>
-                        <h3 className={styles.dashboard__panelTitle}>Club Events Feed</h3>
-                        <p className={styles.dashboard__description}>Recent and upcoming events for {selectedClub}</p>
+                        <div className={styles.dashboard__panelHeader}>
+                            <div>
+                                <h3 className={styles.dashboard__panelTitle}>Club Events Feed</h3>
+                                <p className={styles.dashboard__description}>Recent and upcoming events for {selectedClub}</p>
+                            </div>
+                            <Button variant="primary" onClick={() => setShowEventScheduler(true)}>
+                                Create Event
+                            </Button>
+                        </div>
 
                         <div className={styles.dashboard__eventsFeed}>
                             {recentHeldEvents.length > 0 ? (
@@ -742,9 +761,34 @@ function Dashboard({ user, data, clubs = [] }) {
                 onRoomSelected={(room) => setSelectedRoom(room)}
                 onScheduleEvent={(room) => {
                     setSelectedRoom(room)
-                    // Could open event scheduling modal here
+                    setShowRoomReservation(false)
+                    setShowEventScheduler(true)
                 }}
                 setToastMessage={(msg) => setFoodOrderStatus(msg)}
+            />
+
+            {/* Event Scheduler Component */}
+            <EventScheduler
+                isOpen={showEventScheduler}
+                onClose={() => setShowEventScheduler(false)}
+                selectedRoom={selectedRoom}
+                onReserveRoom={() => {
+                    setShowEventScheduler(false)
+                    setShowRoomReservation(true)
+                }}
+                onEventCreated={(eventData) => {
+                    // Add event to local events state
+                    setClubEvents((prev) => [...prev, eventData])
+                    setFoodOrderStatus(`Event "${eventData.title}" created successfully!`)
+                    // Refresh events feed if on Club events tab
+                    if (activeAction === 'Club events') {
+                        // Trigger a re-render by updating state
+                        const updatedEvents = [...clubEvents, eventData]
+                        setClubEvents(updatedEvents)
+                    }
+                }}
+                club={clubInfo}
+                user={user}
             />
 
             {/* Budget Proposal Form Modal */}
