@@ -235,6 +235,114 @@ function Dashboard({ user, data, clubs = [] }) {
         event.currentTarget.reset()
     }
 
+    // Get next proposal number for the club
+    const getNextProposalNumber = () => {
+        const savedProposals = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
+        const clubProposals = savedProposals.filter((entry) => entry.clubName === selectedClub)
+        return clubProposals.length + 1
+    }
+
+    const handleBudgetProposalSubmit = (event) => {
+        event.preventDefault()
+
+        const formData = new FormData(event.currentTarget)
+        const now = new Date()
+        const dateCompleted = now.toISOString().split('T')[0]
+        const proposalNumber = getNextProposalNumber()
+
+        // Collect activities (up to 10)
+        const activities = []
+        for (let i = 1; i <= 10; i++) {
+            const eventName = formData.get(`eventName${i}`)
+            if (!eventName) continue
+
+            const activityBudgetRows = []
+            let rowIndex = 1
+            while (formData.get(`activity${i}Category${rowIndex}`)) {
+                const category = formData.get(`activity${i}Category${rowIndex}`)
+                const amount = formData.get(`activity${i}Amount${rowIndex}`)
+                if (category && amount) {
+                    activityBudgetRows.push({ category, amount: parseFloat(amount) || 0 })
+                }
+                rowIndex++
+            }
+
+            activities.push({
+                eventName: eventName.toString().trim(),
+                locationType: formData.get(`locationType${i}`)?.toString() || '',
+                targetVenue: formData.get(`targetVenue${i}`)?.toString().trim() || '',
+                destinationOffCampus: formData.get(`destinationOffCampus${i}`)?.toString().trim() || '',
+                numberOfStudents: parseInt(formData.get(`numberOfStudents${i}`) || '0', 10),
+                targetDates: formData.get(`targetDates${i}`)?.toString().trim() || '',
+                eventDescription: formData.get(`eventDescription${i}`)?.toString().trim() || '',
+                itemizedBudget: activityBudgetRows,
+                activityTotal: activityBudgetRows.reduce((sum, row) => sum + row.amount, 0),
+            })
+        }
+
+        // Collect non-activity items
+        const nonActivityItems = []
+        let naIndex = 1
+        while (formData.get(`nonActivityCategory${naIndex}`)) {
+            const category = formData.get(`nonActivityCategory${naIndex}`)
+            const justification = formData.get(`nonActivityJustification${naIndex}`)
+            const amount = formData.get(`nonActivityAmount${naIndex}`)
+            if (category && amount) {
+                nonActivityItems.push({
+                    category: category.toString().trim(),
+                    justification: justification?.toString().trim() || '',
+                    amount: parseFloat(amount) || 0,
+                })
+            }
+            naIndex++
+        }
+
+        const totalAmount = activities.reduce((sum, a) => sum + a.activityTotal, 0) +
+            nonActivityItems.reduce((sum, item) => sum + item.amount, 0)
+
+        const payload = {
+            dateCompleted,
+            proposalNumber,
+            clubName: formData.get('clubName')?.toString().trim() || selectedClub,
+            previousClubName: formData.get('previousClubName')?.toString().trim() || '',
+            numberOfMembers: parseInt(formData.get('numberOfMembers') || '0', 10),
+            clubHistory: formData.get('clubHistory')?.toString().trim() || '',
+            clubRoom: clubInfo.location || 'TBD',
+            activities,
+            nonActivityItems,
+            nonActivityTotal: nonActivityItems.reduce((sum, item) => sum + item.amount, 0),
+            totalAmount,
+            submittedBy: user?.name || '',
+            officerPosition: formData.get('officerPosition')?.toString() || '',
+            submittedAt: now.toISOString(),
+        }
+
+        // Format: "Budget for club-name NN DD-MM-YYYY"
+        const day = String(now.getDate()).padStart(2, '0')
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const year = now.getFullYear()
+        const fileName = `Budget for ${selectedClubSlug} ${String(proposalNumber).padStart(2, '0')} ${day}-${month}-${year}.json`
+
+        const jsonString = JSON.stringify(payload, null, 2)
+        const blob = new Blob([jsonString], { type: 'application/json' })
+        const blobUrl = URL.createObjectURL(blob)
+        const downloadLink = document.createElement('a')
+        downloadLink.href = blobUrl
+        downloadLink.download = fileName
+        downloadLink.click()
+        URL.revokeObjectURL(blobUrl)
+
+        const queuedItem = { fileName, folderPath: budgetFolderPath, clubName: selectedClub, payload }
+        const existingQueue = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
+        const nextQueue = [...existingQueue, queuedItem]
+        window.localStorage.setItem('budget-proposal-queue', JSON.stringify(nextQueue))
+        setBudgetProposals(nextQueue.filter((entry) => entry.clubName === selectedClub))
+
+        setBudgetProposalStatus(`Budget proposal created as ${fileName}. Save it to ${budgetFolderPath}`)
+        setShowBudgetForm(false)
+        event.currentTarget.reset()
+    }
+
     return (
         <main className={styles.dashboard}>
             {/* Club Banner Header */}
@@ -599,6 +707,272 @@ function Dashboard({ user, data, clubs = [] }) {
                     <div className={styles.dashboard__formActions}>
                         <Button type="submit" variant="primary">Submit for Approval</Button>
                         <Button type="button" variant="ghost" onClick={() => setShowOutOfNetworkForm(false)}>Cancel</Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Budget Proposal Form Modal */}
+            <Modal
+                isOpen={showBudgetForm}
+                title="Club Budget Request Form"
+                onClose={() => setShowBudgetForm(false)}
+                panelClassName={styles['modal__panel--wide']}
+            >
+                <div className={styles.dashboard__budgetNote}>
+                    <p><strong>Note:</strong> Budget request cannot exceed $4,000. New clubs cannot exceed $1,000.</p>
+                </div>
+                <form className={styles.dashboard__budgetForm} onSubmit={handleBudgetProposalSubmit}>
+                    {/* Club Information */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Club Information</h4>
+                        <label className={styles.dashboard__field}>
+                            <span>Date completed</span>
+                            <input className={styles.dashboard__input} name="dateCompleted" type="date" defaultValue={new Date().toISOString().split('T')[0]} readOnly />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Club Name</span>
+                            <input className={styles.dashboard__input} name="clubName" type="text" defaultValue={selectedClub} required />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Did your club ever have a different name? If so, what was the name?</span>
+                            <input className={styles.dashboard__input} name="previousClubName" type="text" placeholder="Leave blank if unchanged" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>How many members are typically in your club?</span>
+                            <input className={styles.dashboard__input} name="numberOfMembers" type="number" min="1" required />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Club History: In what ways did your club enhance the college community through your planned events and activities from the previous semester, if any?</span>
+                            <textarea className={styles.dashboard__textarea} name="clubHistory" rows="4" required />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Club Room</span>
+                            <input className={styles.dashboard__input} name="clubRoom" type="text" defaultValue={clubInfo.location || 'TBD'} readOnly />
+                        </label>
+                    </div>
+
+                    {/* Activity 1 */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Activity 1</h4>
+                        <label className={styles.dashboard__field}>
+                            <span>Name of event</span>
+                            <input className={styles.dashboard__input} name="eventName1" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Location type</span>
+                            <select className={styles.dashboard__input} name="locationType1">
+                                <option value="">Select...</option>
+                                <option value="on-campus">On Campus</option>
+                                <option value="virtual">Virtual</option>
+                            </select>
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target venue</span>
+                            <input className={styles.dashboard__input} name="targetVenue1" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Destination if off campus</span>
+                            <input className={styles.dashboard__input} name="destinationOffCampus1" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Number of students attending</span>
+                            <input className={styles.dashboard__input} name="numberOfStudents1" type="number" min="1" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target date(s)</span>
+                            <input className={styles.dashboard__input} name="targetDates1" type="text" placeholder="e.g., March 15, 2026" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Event description (include purpose and benefit to community)</span>
+                            <textarea className={styles.dashboard__textarea} name="eventDescription1" rows="3" />
+                        </label>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="activity1Category1" type="text" placeholder="e.g., Food" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="activity1Amount1" type="number" min="0" step="0.01" placeholder="0.00" />
+                            </label>
+                        </div>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="activity1Category2" type="text" placeholder="e.g., Decorations" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="activity1Amount2" type="number" min="0" step="0.01" placeholder="0.00" />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Activity 2 */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Activity 2</h4>
+                        <label className={styles.dashboard__field}>
+                            <span>Name of event</span>
+                            <input className={styles.dashboard__input} name="eventName2" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Location type</span>
+                            <select className={styles.dashboard__input} name="locationType2">
+                                <option value="">Select...</option>
+                                <option value="on-campus">On Campus</option>
+                                <option value="virtual">Virtual</option>
+                            </select>
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target venue</span>
+                            <input className={styles.dashboard__input} name="targetVenue2" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Destination if off campus</span>
+                            <input className={styles.dashboard__input} name="destinationOffCampus2" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Number of students attending</span>
+                            <input className={styles.dashboard__input} name="numberOfStudents2" type="number" min="1" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target date(s)</span>
+                            <input className={styles.dashboard__input} name="targetDates2" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Event description</span>
+                            <textarea className={styles.dashboard__textarea} name="eventDescription2" rows="3" />
+                        </label>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="activity2Category1" type="text" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="activity2Amount1" type="number" min="0" step="0.01" />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Activity 3 */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Activity 3</h4>
+                        <label className={styles.dashboard__field}>
+                            <span>Name of event</span>
+                            <input className={styles.dashboard__input} name="eventName3" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Location type</span>
+                            <select className={styles.dashboard__input} name="locationType3">
+                                <option value="">Select...</option>
+                                <option value="on-campus">On Campus</option>
+                                <option value="virtual">Virtual</option>
+                            </select>
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target venue</span>
+                            <input className={styles.dashboard__input} name="targetVenue3" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Destination if off campus</span>
+                            <input className={styles.dashboard__input} name="destinationOffCampus3" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Number of students attending</span>
+                            <input className={styles.dashboard__input} name="numberOfStudents3" type="number" min="1" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Target date(s)</span>
+                            <input className={styles.dashboard__input} name="targetDates3" type="text" />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Event description</span>
+                            <textarea className={styles.dashboard__textarea} name="eventDescription3" rows="3" />
+                        </label>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="activity3Category1" type="text" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="activity3Amount1" type="number" min="0" step="0.01" />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Non-Activity Items */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Non-Activity Items (promotional items, banners, supplies, etc.)</h4>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="nonActivityCategory1" type="text" placeholder="e.g., Banner" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Justification</span>
+                                <input className={styles.dashboard__input} name="nonActivityJustification1" type="text" placeholder="Why needed?" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="nonActivityAmount1" type="number" min="0" step="0.01" placeholder="0.00" />
+                            </label>
+                        </div>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="nonActivityCategory2" type="text" placeholder="e.g., Supplies" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Justification</span>
+                                <input className={styles.dashboard__input} name="nonActivityJustification2" type="text" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="nonActivityAmount2" type="number" min="0" step="0.01" placeholder="0.00" />
+                            </label>
+                        </div>
+                        <div className={styles.dashboard__budgetRow}>
+                            <label className={styles.dashboard__field}>
+                                <span>Category</span>
+                                <input className={styles.dashboard__input} name="nonActivityCategory3" type="text" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Justification</span>
+                                <input className={styles.dashboard__input} name="nonActivityJustification3" type="text" />
+                            </label>
+                            <label className={styles.dashboard__field}>
+                                <span>Amount ($)</span>
+                                <input className={styles.dashboard__input} name="nonActivityAmount3" type="number" min="0" step="0.01" placeholder="0.00" />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Officer Information */}
+                    <div className={styles.dashboard__budgetSection}>
+                        <h4 className={styles.dashboard__budgetSectionTitle}>Officer Information</h4>
+                        <label className={styles.dashboard__field}>
+                            <span>Name of club officer submitting form</span>
+                            <input className={styles.dashboard__input} name="submittedBy" type="text" defaultValue={user?.name || ''} readOnly />
+                        </label>
+                        <label className={styles.dashboard__field}>
+                            <span>Position of officer</span>
+                            <select className={styles.dashboard__input} name="officerPosition" required>
+                                <option value="">Select position...</option>
+                                <option value="president">President</option>
+                                <option value="vice-president">Vice President</option>
+                                <option value="treasurer">Treasurer</option>
+                                <option value="secretary">Secretary</option>
+                                <option value="club-officer">Club Officer</option>
+                                <option value="club-advisor">Club Advisor</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div className={styles.dashboard__formActions}>
+                        <Button type="submit" variant="primary">Submit Budget Proposal</Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowBudgetForm(false)}>Cancel</Button>
                     </div>
                 </form>
             </Modal>
