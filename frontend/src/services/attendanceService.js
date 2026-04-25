@@ -12,6 +12,8 @@
  * }
  */
 
+import { createAttendanceRecord as apiCreateAttendanceRecord } from './api'
+
 const STORAGE_KEY_PREFIX = 'attendance-log-'
 
 function getStorageKey(user) {
@@ -64,6 +66,19 @@ export function addAttendanceRecord(user, registration) {
     })
 
     window.localStorage.setItem(key, JSON.stringify(log))
+
+    // Also POST to backend API if an event ID is available
+    if (registration.eventId) {
+        const nameParts = (user.name || '').split(' ')
+        apiCreateAttendanceRecord({
+            event: registration.eventId,
+            first_name: nameParts[0] || '',
+            last_name: nameParts.slice(1).join(' ') || '',
+            school_email: user.email || '',
+            emplid: '',
+        }).catch(() => { /* API save failed, localStorage record preserved */ })
+    }
+
     return log
 }
 

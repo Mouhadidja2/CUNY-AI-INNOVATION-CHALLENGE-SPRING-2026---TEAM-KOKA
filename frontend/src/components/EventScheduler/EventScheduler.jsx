@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Modal from '../Modal/Modal'
 import Button from '../Button/Button'
 import styles from './eventScheduler.module.scss'
+import { createEvent as apiCreateEvent } from '../../services/api'
 
 const VISIBILITY_OPTIONS = [
     { id: 'public', label: 'Public', description: 'All students can see this event' },
@@ -113,10 +114,15 @@ function EventScheduler({
             clubName: club?.name,
         }
 
-        // Store in localStorage for persistence
-        const existingEvents = JSON.parse(window.localStorage.getItem('club-events') || '[]')
-        existingEvents.push(eventData)
-        window.localStorage.setItem('club-events', JSON.stringify(existingEvents))
+        // POST to backend API if club has a backend ID
+        if (club?.backendId) {
+            apiCreateEvent({
+                club: club.backendId,
+                name: eventName,
+                date: eventDate,
+                location: `${selectedRoom.roomNumber} · ${selectedRoom.buildingName}`,
+            }).catch(() => { /* API save failed, event still passed to parent */ })
+        }
 
         onEventCreated(eventData)
         handleClose()
@@ -273,9 +279,8 @@ function EventScheduler({
                             <button
                                 key={option.id}
                                 type="button"
-                                className={`${styles.eventScheduler__visibilityOption} ${
-                                    visibility === option.id ? styles['eventScheduler__visibilityOption--active'] : ''
-                                }`}
+                                className={`${styles.eventScheduler__visibilityOption} ${visibility === option.id ? styles['eventScheduler__visibilityOption--active'] : ''
+                                    }`}
                                 onClick={() => setVisibility(option.id)}
                             >
                                 <span className={styles.eventScheduler__visibilityLabel}>{option.label}</span>

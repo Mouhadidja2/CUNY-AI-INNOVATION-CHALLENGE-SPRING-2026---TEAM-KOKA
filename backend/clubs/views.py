@@ -14,13 +14,34 @@ class FoodOrderViewSet(viewsets.ModelViewSet):
     queryset = FoodOrder.objects.all()
     serializer_class = FoodOrderSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        club_id = self.request.query_params.get('club')
+        if club_id:
+            qs = qs.filter(club_id=club_id)
+        return qs
+
 class BudgetProposalViewSet(viewsets.ModelViewSet):
     queryset = BudgetProposal.objects.all()
     serializer_class = BudgetProposalSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        club_id = self.request.query_params.get('club')
+        if club_id:
+            qs = qs.filter(club_id=club_id)
+        return qs
+
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        club_id = self.request.query_params.get('club')
+        if club_id:
+            qs = qs.filter(club_id=club_id)
+        return qs
 
     @action(detail=True, methods=['get'])
     def export_attendance(self, request, pk=None):
