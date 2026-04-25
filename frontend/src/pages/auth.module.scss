@@ -1,0 +1,111 @@
+.authPage {
+    display: grid;
+    gap: 1rem;
+}
+
+.authPage__card {
+    border: 1px solid var(--color-dove);
+    border-radius: 1.5rem;
+    background: linear-gradient(180deg, rgba(40, 73, 214, 0.04), rgba(255, 255, 255, 0.98));
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: 1rem;
+}
+
+.authPage__topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.authPage__campusTagWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.authPage__campusTag {
+    margin: 0;
+    border: 1px solid var(--color-dove);
+    border-radius: 999px;
+    padding: 0.5rem 0.85rem;
+    color: var(--color-black);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    background: var(--color-white);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.authPage__campusTag:hover {
+    background: var(--color-ghost);
+    border-color: var(--color-accent);
+}
+
+.authPage__tooltip {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 10;
+    background: var(--color-white);
+    border: 1px solid var(--color-dove);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    box-shadow: var(--shadow-md);
+    min-width: 140px;
+}
+
+.authPage__tooltipButton {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.authPage__tooltipButton:hover {
+    background: var(--color-ghost);
+}
+
+.authPage__guardMessage {
+    margin: 0;
+    color: var(--color-slate);
+    font-size: var(--font-size-m);
+}
+
+.authPage__eyebrow {
+    margin: 0 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+}
+
+.authPage__title {
+    margin: 0;
+    color: var(--color-black);
+    font-size: clamp(var(--font-size-xl), 3vw, var(--font-size-3xl));
+}
+
+.authPage__back {
+    margin-left: auto;
+}
+
+.authPage__backButton {
+    border: 1px solid var(--color-dove);
+    border-radius: 999px;
+    padding: 0.7rem 1rem;
+    background: var(--color-white);
+    color: var(--color-black);
+    cursor: pointer;
+    font-weight: 600;
+}

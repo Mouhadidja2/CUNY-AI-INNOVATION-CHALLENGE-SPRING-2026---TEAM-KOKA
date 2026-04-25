@@ -1,0 +1,59 @@
+.clubsPage {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.clubsPage__intro {
+    border: 1px solid var(--color-dove);
+    border-radius: 1rem;
+    background: linear-gradient(160deg, #f7fbff, #ffffff);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    display: grid;
+    gap: 0.6rem;
+}
+
+.clubsPage__breadcrumb {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--color-slate);
+    font-size: var(--font-size-s);
+}
+
+.clubsPage__breadcrumbLink {
+    border: 0;
+    background: transparent;
+    color: var(--color-blue);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    padding: 0;
+}
+
+.clubsPage__breadcrumbLink:hover {
+    text-decoration: underline;
+}
+
+.clubsPage__breadcrumbDivider {
+    opacity: 0.6;
+}
+
+.clubsPage__title {
+    margin: 0;
+    color: var(--color-black);
+    font-size: clamp(var(--font-size-xl), 2.7vw, var(--font-size-3xl));
+}
+
+.clubsPage__description {
+    margin: 0;
+    color: var(--color-slate);
+    max-width: 68ch;
+}
+
+.clubsPage__campusMeta {
+    margin: 0;
+    color: var(--color-indigo);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+}

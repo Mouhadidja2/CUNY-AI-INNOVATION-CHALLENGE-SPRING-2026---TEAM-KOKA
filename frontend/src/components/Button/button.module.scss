@@ -1,0 +1,43 @@
+.button {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-s);
+    line-height: 1;
+    padding: 0.7rem 1.1rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.button:hover {
+    transform: translateY(-1px);
+}
+
+.button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+.button--primary {
+    background-color: var(--color-blue);
+    border-color: var(--color-blue);
+    color: var(--color-white);
+}
+
+.button--ghost {
+    background-color: transparent;
+    border-color: var(--color-blue);
+    color: var(--color-blue);
+}
+
+.button--icon {
+    background-color: transparent;
+    border: none;
+    color: var(--color-blue);
+    padding: 0.5rem 0.65rem;
+}
+
+.button--full-width {
+    width: 100%;
+}

@@ -216,4 +216,23 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.tomlfrontend/src/assets/BMCC-Club-Builder_night-mode.jpg
+frontend/src/assets/BMCC-Club-Builder.jpg
+frontend/src/assets/BMCC-Club-Builder.png
+frontend/src/assets/old-images/bmcc-night-no-blur.jpg
+frontend/src/assets/old-images/bmcc-night.jpg
+frontend/src/assets/old-images/campus/chambers-campus-framed.png
+frontend/src/assets/old-images/campus/chambers-campus-v2-framed.png
+frontend/src/assets/old-images/campus/chambers-campus-v2.png
+frontend/src/assets/old-images/campus/chambers-campus.png
+frontend/src/assets/old-images/campus/cuny-in-the-heights-campus-framed.png
+frontend/src/assets/old-images/campus/cuny-in-the-heights-campus.png
+frontend/src/assets/old-images/campus/fiterman-campus-framed.png
+frontend/src/assets/old-images/campus/fiterman-campus.png
+frontend/src/assets/old-images/campus/murray-campus-framed.png
+frontend/src/assets/old-images/campus/murray-campus.png
+
+__pycache__/
+*.py[cod]
+.env
+.venv

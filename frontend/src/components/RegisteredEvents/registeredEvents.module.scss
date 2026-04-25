@@ -1,0 +1,169 @@
+.registeredEvents {
+    border: 1px solid var(--color-dove);
+    border-radius: 1.25rem;
+    background: linear-gradient(160deg, #f9fbff, #ffffff);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    display: grid;
+    gap: 1rem;
+}
+
+.registeredEvents__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.registeredEvents__title {
+    margin: 0;
+    font-size: clamp(var(--font-size-l), 2.2vw, var(--font-size-xl));
+    color: var(--color-black);
+}
+
+.registeredEvents__count {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+    font-weight: 600;
+    background: var(--color-pearl);
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+}
+
+.registeredEvents__grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* Event card */
+.registeredEvents__card {
+    border: 1px solid var(--color-dove);
+    border-radius: 1rem;
+    background: var(--color-white);
+    padding: 1rem 1.15rem;
+    display: grid;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+
+.registeredEvents__card:hover {
+    border-color: var(--color-azure);
+    box-shadow: 0 4px 16px rgba(0, 51, 161, 0.08);
+    transform: translateY(-1px);
+}
+
+.registeredEvents__card--expanded {
+    border-color: var(--color-azure);
+    box-shadow: 0 4px 16px rgba(0, 51, 161, 0.08);
+}
+
+.registeredEvents__cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.registeredEvents__eventTitle {
+    margin: 0;
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    color: var(--color-black);
+}
+
+.registeredEvents__clubName {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-blue);
+    font-weight: 600;
+}
+
+.registeredEvents__eventMeta {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+}
+
+.registeredEvents__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--font-size-2xs);
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.registeredEvents__badge--attended {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.registeredEvents__badge--pending {
+    background: var(--color-cream);
+    color: var(--color-ochre);
+}
+
+/* Detail panel (expanded view) */
+.registeredEvents__detail {
+    border-top: 1px solid var(--color-dove);
+    padding-top: 0.85rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.registeredEvents__feedbackSection {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.registeredEvents__label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-slate);
+}
+
+.registeredEvents__textarea {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-s);
+    min-height: 60px;
+    resize: vertical;
+    background: var(--color-white);
+    color: var(--color-charcoal);
+}
+
+.registeredEvents__textarea:focus {
+    outline: 2px solid var(--color-sky);
+    border-color: var(--color-azure);
+}
+
+.registeredEvents__feedbackSaved {
+    font-size: var(--font-size-xs);
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.registeredEvents__attendanceSection {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.registeredEvents__attendanceHint {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate);
+    line-height: 1.45;
+}
+
+.registeredEvents__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
