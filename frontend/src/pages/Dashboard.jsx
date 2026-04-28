@@ -34,6 +34,11 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
     const [showBudgetForm, setShowBudgetForm] = useState(false)
     const [budgetProposalStatus, setBudgetProposalStatus] = useState('')
     const [budgetProposals, setBudgetProposals] = useState([])
+    const [selectedProposal, setSelectedProposal] = useState(null)
+    const [reviewComment, setReviewComment] = useState('')
+    const [showReviewModal, setShowReviewModal] = useState(false)
+    const [showDissolveConfirm, setShowDissolveConfirm] = useState(false)
+    const [dissolvedClubs, setDissolvedClubs] = useState(new Set())
 
     // Room reservation state
     const [showRoomReservation, setShowRoomReservation] = useState(false)
@@ -190,6 +195,34 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
         }
         setShowOutOfNetworkForm(false)
         event.currentTarget.reset()
+    }
+
+    const canDissolve = user?.role === 'club advisor' || user?.role === 'sga officer'
+    const isClubDissolved = dissolvedClubs.has(selectedClub)
+
+    const handleDissolveClub = () => {
+        setDissolvedClubs((prev) => new Set([...prev, selectedClub]))
+        setShowDissolveConfirm(false)
+        setFoodOrderStatus(`Club "${selectedClub}" has been dissolved.`)
+    }
+
+    const handleBudgetReview = async (newStatus) => {
+        if (!selectedProposal) return
+        try {
+            const res = await fetch(`http://localhost:8000/api/budgets/${selectedProposal.id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus, reviewer_comment: reviewComment }),
+            })
+            if (!res.ok) throw new Error('Failed to update proposal')
+            const updated = await fetchBudgetProposalsByClub(backendClubId)
+            setBudgetProposals(updated)
+            setBudgetProposalStatus(`Proposal ${newStatus.toLowerCase()} successfully.`)
+        } catch (err) {
+            setBudgetProposalStatus(`Error: ${err.message}`)
+        }
+        setShowReviewModal(false)
+        setSelectedProposal(null)
     }
 
     const handleBudgetProposalSubmit = async (event) => {
@@ -445,8 +478,16 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
                             {budgetProposals.length ? (
                                 <ul className={styles.dashboard__orderItems}>
                                     {budgetProposals.map((proposal) => (
-                                        <li key={proposal.id}>
-                                            {proposal.semester || 'Budget Proposal'} — ${Number(proposal.total_requested || 0).toFixed(2)} — {proposal.status}
+                                        <li key={proposal.id} className={styles.dashboard__proposalRow}>
+                                            <span>{proposal.semester || 'Budget Proposal'} — ${Number(proposal.total_requested || 0).toFixed(2)} — {proposal.status}</span>
+                                            {(user?.role === 'club advisor' || user?.role === 'sga officer') && proposal.status === 'PENDING' && (
+                                                <Button variant="ghost" onClick={() => { setSelectedProposal(proposal); setReviewComment(''); setShowReviewModal(true) }}>
+                                                    Review
+                                                </Button>
+                                            )}
+                                            {proposal.reviewer_comment && (
+                                                <span className={styles.dashboard__reviewComment}>Comment: {proposal.reviewer_comment}</span>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -487,6 +528,48 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
                     </section>
                 )}
             </section>
+
+            {/* Club Dissolution — only visible to advisors and SGA officers */}
+            {canDissolve && !isClubDissolved && (
+                <div className={styles.dashboard__dissolveSection}>
+                    <p className={styles.dashboard__dissolveWarning}>Danger Zone</p>
+                    <p className={styles.dashboard__description}>
+                        Dissolving a club is permanent. All associated data will be archived and the club will no longer appear in the directory.
+                    </p>
+                    <Button variant="ghost" onClick={() => setShowDissolveConfirm(true)}>
+                        Dissolve this club
+                    </Button>
+                </div>
+            )}
+            {isClubDissolved && (
+                <div className={styles.dashboard__dissolveSection}>
+                    <p className={styles.dashboard__dissolveWarning}>This club has been dissolved.</p>
+                </div>
+            )}
+
+            {/* Club Dissolution Confirmation Modal */}
+            <Modal
+                isOpen={showDissolveConfirm}
+                title="Confirm Club Dissolution"
+                onClose={() => setShowDissolveConfirm(false)}
+            >
+                <div className={styles.dashboard__reviewPanel}>
+                    <p className={styles.dashboard__dissolveWarning}>
+                        Are you sure you want to dissolve &ldquo;{selectedClub}&rdquo;?
+                    </p>
+                    <p className={styles.dashboard__description}>
+                        This action cannot be undone. The club will be removed from the active directory and all current operations will be archived.
+                    </p>
+                    <div className={styles.dashboard__reviewActions}>
+                        <Button variant="primary" onClick={handleDissolveClub}>
+                            Yes, Dissolve Club
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowDissolveConfirm(false)}>
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Food Order Type Selector Modal */}
             <Modal
@@ -676,6 +759,39 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
                 club={{ ...clubInfo, backendId: backendClubId }}
                 user={user}
             />
+
+            {/* Budget Review Modal */}
+            <Modal
+                isOpen={showReviewModal}
+                title="Review Budget Proposal"
+                onClose={() => { setShowReviewModal(false); setSelectedProposal(null) }}
+            >
+                {selectedProposal && (
+                    <div className={styles.dashboard__reviewPanel}>
+                        <p className={styles.dashboard__description}>
+                            <strong>{selectedProposal.semester || 'Budget Proposal'}</strong> — ${Number(selectedProposal.total_requested || 0).toFixed(2)}
+                        </p>
+                        {selectedProposal.community_enhancement && (
+                            <p className={styles.dashboard__description}><strong>Club history:</strong> {selectedProposal.community_enhancement}</p>
+                        )}
+                        <label className={styles.dashboard__field}>
+                            <span>Reviewer comment / suggestion</span>
+                            <textarea
+                                className={styles.dashboard__textarea}
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                rows={3}
+                                placeholder="Add feedback or suggestions for the club..."
+                            />
+                        </label>
+                        <div className={styles.dashboard__reviewActions}>
+                            <Button variant="primary" onClick={() => handleBudgetReview('APPROVED')}>Approve</Button>
+                            <Button variant="ghost" onClick={() => handleBudgetReview('RETURNED')}>Return for Edits</Button>
+                            <Button variant="ghost" onClick={() => handleBudgetReview('DENIED')}>Deny</Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Budget Proposal Form Modal */}
             <Modal

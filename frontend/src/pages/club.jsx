@@ -4,6 +4,7 @@ import { faPencil } from '@fortawesome/free-solid-svg-icons'
 import Button from '../components/Button/Button'
 import Modal from '../components/Modal/Modal'
 import RsvpModal from '../components/RsvpModal/RsvpModal'
+import ClubComments from '../components/ClubComments/ClubComments'
 import styles from './club.module.scss'
 
 function getEventCardsPerPage(width) {
@@ -66,14 +67,18 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
             return
         }
 
-        // Check if event is in the past
+        // Check if event is in the past (allow same-day RSVP)
         const eventDate = event.fixedDate ? new Date(event.fixedDate) : null
         const now = new Date()
-        if (eventDate && eventDate < now) {
-            if (setToastMessage) {
-                setToastMessage('Cannot RSVP for events that have already passed.')
+        if (eventDate) {
+            const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+            if (eventDay < today) {
+                if (setToastMessage) {
+                    setToastMessage('Cannot RSVP for events that have already passed.')
+                }
+                return
             }
-            return
         }
 
         setRsvpEvent(event)
@@ -94,14 +99,18 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
         // RSVP for the first public event if available
         const firstEvent = club.publicEvents[0]
         if (firstEvent && !isEventRegistered(firstEvent.id)) {
-            // Check if event is in the past
+            // Check if event is in the past (allow same-day RSVP)
             const eventDate = firstEvent.fixedDate ? new Date(firstEvent.fixedDate) : null
             const now = new Date()
-            if (eventDate && eventDate < now) {
-                if (setToastMessage) {
-                    setToastMessage('Cannot RSVP for events that have already passed.')
+            if (eventDate) {
+                const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                if (eventDay < today) {
+                    if (setToastMessage) {
+                        setToastMessage('Cannot RSVP for events that have already passed.')
+                    }
+                    return
                 }
-                return
             }
             setRsvpEvent(firstEvent)
         }
@@ -316,6 +325,10 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                         <p className={styles.club__empty}>No public events have been posted yet.</p>
                     )}
                 </div>
+            </section>
+
+            <section className={styles.club__panel}>
+                <ClubComments clubId={club.id} currentUser={currentUser} />
             </section>
 
             {rsvpEvent ? (

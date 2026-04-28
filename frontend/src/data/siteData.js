@@ -132,12 +132,34 @@ function parseBmccClubDirectory(csvText) {
 
 export const bmccClubDirectory20252026 = parseBmccClubDirectory(bmccClubDirectoryCsvRaw)
 
-// Inject the AI Innovation Challenge special event into Computer Programming Club
+// Inject events into Computer Programming Club
 const cpcIndex = bmccClubDirectory20252026.findIndex((club) => club.id === 'computer-programming-club')
 if (cpcIndex !== -1) {
     bmccClubDirectory20252026[cpcIndex].advisor = 'Dr. Azhar'
     bmccClubDirectory20252026[cpcIndex].officers = ['Advisor: Dr. Azhar']
     bmccClubDirectory20252026[cpcIndex].publicEvents = [
+        // ── Past events ──
+        {
+            id: 'cpc-arduino-collab',
+            title: 'Arduino Workshop + Competition — Computer Programming Club · Latinas in STEM · Society of Student Engineers',
+            time: 'March 23, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-03-23T14:00:00',
+            fixedEndDate: '2026-03-23T16:00:00',
+        },
+        {
+            id: 'cpc-arduino-continuation',
+            title: 'Arduino Workshop (Continuation)',
+            time: 'April 15, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-04-15T14:00:00',
+            fixedEndDate: '2026-04-15T16:00:00',
+        },
+        {
+            id: 'cpc-data-science-workshop',
+            title: 'Data Science Workshop',
+            time: 'April 22, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-04-22T14:00:00',
+            fixedEndDate: '2026-04-22T16:00:00',
+        },
         {
             id: 'cpc-ai-innovation-day1',
             title: 'AI Innovation Challenge: Tech for Change — Day 1',
@@ -152,7 +174,38 @@ if (cpcIndex !== -1) {
             fixedDate: '2026-04-25T09:00:00',
             fixedEndDate: '2026-04-25T21:00:00',
         },
+        // ── Future events ──
+        {
+            id: 'cpc-big-tech-day',
+            title: 'Big Tech Day',
+            time: 'April 29, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-04-29T14:00:00',
+            fixedEndDate: '2026-04-29T16:00:00',
+        },
+        {
+            id: 'cpc-resume-workshop',
+            title: 'Resume Review / Workshop',
+            time: 'May 6, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-05-06T14:00:00',
+            fixedEndDate: '2026-05-06T16:00:00',
+        },
+        {
+            id: 'cpc-finals-relaxation',
+            title: 'Finals Relaxation Event',
+            time: 'May 13, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-05-13T14:00:00',
+            fixedEndDate: '2026-05-13T16:00:00',
+        },
+        // ── Weekly meeting ──
         ...bmccClubDirectory20252026[cpcIndex].publicEvents,
+    ]
+
+    // TBD events that members can vote on
+    bmccClubDirectory20252026[cpcIndex].tbdEvents = [
+        { id: 'cpc-tbd-game-design', title: 'Game Design Workshop' },
+        { id: 'cpc-tbd-cloud-computing', title: 'Cloud Computing Workshop' },
+        { id: 'cpc-tbd-mini-hackathon', title: 'Mini Hackathon' },
+        { id: 'cpc-tbd-google-tour', title: 'Google Campus Tour' },
     ]
 }
 

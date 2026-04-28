@@ -63,6 +63,7 @@ class BudgetProposal(models.Model):
     non_activity_items = models.JSONField(default=list, help_text="Array of promotional items, supplies, etc.")
 
     total_requested = models.DecimalField(max_digits=8, decimal_places=2)
+    reviewer_comment = models.TextField(blank=True, default='', help_text="Comments from advisor/SGA reviewer.")
     
     created_at = models.DateTimeField(auto_now_add=True)
 
