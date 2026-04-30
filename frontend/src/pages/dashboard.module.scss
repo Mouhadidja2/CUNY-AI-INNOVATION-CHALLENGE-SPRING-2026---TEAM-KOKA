@@ -561,6 +561,64 @@
     margin: 0;
 }
 
+/* Attendance Management */
+.dashboard__attendeeList {
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.dashboard__attendeeHeader {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.5fr;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-surface-alt, #f5f5f5);
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-slate, #555);
+}
+
+.dashboard__attendeeRow {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.5fr;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    align-items: center;
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.06));
+    font-size: var(--font-size-s);
+}
+
+.dashboard__attendeeRow:nth-child(even) {
+    background: var(--color-surface-alt, rgba(0, 0, 0, 0.02));
+}
+
+.dashboard__attendeeCol {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dashboard__status--present {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.dashboard__status--absent {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.dashboard__status--pending {
+    color: #d97706;
+    font-weight: 600;
+}
+
 /* Modal wide panel override */
 .modal__panel--wide {
     max-width: 800px;

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import Modal from './components/Modal/Modal'
-import Toast from './components/Toast/Toast'
 import Button from './components/Button/Button'
 import Home from './pages/home'
 import Club from './pages/club'
@@ -11,12 +10,10 @@ import AuthPage from './pages/auth'
 import Dashboard from './pages/Dashboard'
 import ClubsPage from './pages/clubs'
 import EventsOverview from './pages/events'
-import StartClubPage from './pages/startClub'
-import SearchResults from './pages/searchResults'
-import { BMCC_CAMPUS_ID, clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
-import { initAttendanceLog, addAttendanceRecord, getAttendanceLog } from './services/attendanceService'
+import { clubDirectory, defaultUserProfile, trendingEvents } from './data/siteData'
 import { campuses } from './data/campuses'
-import { fetchClubs as apiFetchClubs } from './services/api'
+import { dashboardData } from './data/dashboardData'
+import { addClubAttendance, addRsvpRecord } from './services/clubAttendanceService'
 import cunyClubBuilderDefault from './assets/CUNY-College-Club-Builder.png'
 import cunyClubBuilderSnow from './assets/CUNY-College-Club-Builder_snow.png'
 import cunyClubBuilderNight from './assets/CUNY-College-Club-Builder_night.png'
@@ -28,9 +25,6 @@ import styles from './styles/global.module.scss'
 
 const dashboardRoles = ['club officer', 'club advisor', 'sga officer']
 const themeModes = ['default', 'snow', 'night']
-
-// Demo mode - populates dashboard with fake content when true
-export const demoMode = false
 
 function normalizePath(pathname) {
     const cleanedPath = pathname.replace(/\/+$/, '')
@@ -64,14 +58,6 @@ function resolveRoute(pathname) {
         return { name: 'events' }
     }
 
-    if (cleanPath === '/search') {
-        return { name: 'search' }
-    }
-
-    if (cleanPath === '/start-club/new') {
-        return { name: 'startClubForm' }
-    }
-
     if (cleanPath.startsWith('/club/')) {
         return { name: 'club', clubId: decodeURIComponent(cleanPath.split('/')[2] || '') }
     }
@@ -89,24 +75,37 @@ function App() {
     const [themeMode, setThemeMode] = useState('default')
     const [searchQuery, setSearchQuery] = useState('')
     const [statusMessage, setStatusMessage] = useState('')
-    const [selectedCampusId, setSelectedCampusId] = useState('')
-    const [currentUser, setCurrentUser] = useState(null)
+    const [selectedCampusId, setSelectedCampusId] = useState(() => {
+        return window.localStorage.getItem('selectedCampusId') || ''
+    })
+    const [currentUser, setCurrentUser] = useState(() => {
+        try {
+            const saved = window.localStorage.getItem('currentUser')
+            return saved ? JSON.parse(saved) : null
+        } catch { return null }
+    })
     const [signupRole, setSignupRole] = useState('student')
     const [signupAssignedClub, setSignupAssignedClub] = useState('')
     const [isHeaderHidden, setIsHeaderHidden] = useState(false)
-    const [isDevContentVisible, setIsDevContentVisible] = useState(false)
-    const [pendingPostAuthDestination, setPendingPostAuthDestination] = useState(null)
-    const [toastMessage, setToastMessage] = useState('')
-    const [registeredEvents, setRegisteredEvents] = useState(() => {
-        try {
-            return JSON.parse(window.localStorage.getItem('registered-events') || '[]')
-        } catch {
-            return []
-        }
-    })
-    const [backendClubs, setBackendClubs] = useState([])
+    const [registeredEvents, setRegisteredEvents] = useState([])
 
     const requiresAssignedClub = (role) => ['club officer', 'club advisor', 'sga officer'].includes(role)
+
+    // Persist currentUser to localStorage whenever it changes
+    useEffect(() => {
+        if (currentUser) {
+            window.localStorage.setItem('currentUser', JSON.stringify(currentUser))
+        } else {
+            window.localStorage.removeItem('currentUser')
+        }
+    }, [currentUser])
+
+    // Persist selectedCampusId to localStorage whenever it changes
+    useEffect(() => {
+        if (selectedCampusId) {
+            window.localStorage.setItem('selectedCampusId', selectedCampusId)
+        }
+    }, [selectedCampusId])
 
     useEffect(() => {
         const handlePopState = () => {
@@ -117,22 +116,8 @@ function App() {
         return () => window.removeEventListener('popstate', handlePopState)
     }, [])
 
-    useEffect(() => {
-        apiFetchClubs()
-            .then((clubs) => setBackendClubs(clubs))
-            .catch(() => setBackendClubs([]))
-    }, [])
-
     const navigate = (nextPath) => {
         const nextLocation = normalizePath(nextPath)
-
-        const nextRoute = resolveRoute(nextLocation)
-        if (nextRoute.name === 'club') {
-            const nextClub = clubDirectory.find((club) => club.id === nextRoute.clubId) || null
-            if (nextClub && selectedCampusId !== nextClub.campus) {
-                setSelectedCampusId(nextClub.campus)
-            }
-        }
 
         if (window.location.pathname !== nextLocation) {
             window.history.pushState({}, '', nextLocation)
@@ -142,9 +127,7 @@ function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const goToAuth = (mode = 'login', postAuthDestination = null) => {
-        setPendingPostAuthDestination(postAuthDestination)
-
+    const goToAuth = (mode = 'login') => {
         if (!selectedCampusId) {
             setPendingAuthMode(mode)
             setPendingCampusDestination('/auth')
@@ -166,14 +149,6 @@ function App() {
         navigate('/clubs')
     }
 
-    const goToStartClub = () => {
-        goToAuth('login', 'start-club-form')
-    }
-
-    const goToManageClub = () => {
-        goToAuth('login', 'manage-club-dashboard')
-    }
-
     const handleCampusPickedFromModal = (campusId) => {
         setSelectedCampusId(campusId)
         setIsCampusModalOpen(false)
@@ -189,18 +164,10 @@ function App() {
 
     const handleHeaderSearchChange = (nextQuery) => {
         setSearchQuery(nextQuery)
-    }
 
-    const handleHeaderSearchSubmit = (query) => {
-        if (query.trim()) {
-            navigate('/search')
+        if (normalizePath(locationPath) !== '/') {
+            navigate('/')
         }
-    }
-
-    const handleSignOut = () => {
-        setCurrentUser(null)
-        setStatusMessage('')
-        navigate('/')
     }
 
     const selectedCampus = campuses.find((campus) => campus.id === selectedCampusId) || null
@@ -229,12 +196,13 @@ function App() {
         ? trendingEvents.filter((event) => event.campus === selectedCampusId)
         : []
 
-    const buildUserProfile = (name, role, assignedClub, email) => ({
+    const buildUserProfile = (name, role, assignedClub, email, emplid) => ({
         name,
         role,
         assignedClub,
         email,
-        recentEvents: [],
+        emplid: emplid || '',
+        recentEvents: role === 'student' ? [...defaultUserProfile.recentEvents] : [],
     })
 
     const handleLoginSubmit = (event) => {
@@ -248,34 +216,16 @@ function App() {
 
         const formData = new FormData(event.currentTarget)
         const email = (formData.get('email') || '').toString()
+        const emplid = (formData.get('emplid') || '').toString()
         const userRole = (formData.get('role') || 'student').toString()
         const assignedClub = (formData.get('assignedClub') || '').toString()
         const derivedName = email.split('@')[0] || defaultUserProfile.name
 
-        const loggedInUser = buildUserProfile(derivedName, userRole, assignedClub, email)
+        const loggedInUser = buildUserProfile(derivedName, userRole, assignedClub, email, emplid)
 
         setCurrentUser(loggedInUser)
-        initAttendanceLog(loggedInUser)
         setStatusMessage(`Signed in as ${userRole}.`)
         event.currentTarget.reset()
-
-        if (pendingPostAuthDestination === 'start-club-form') {
-            setPendingPostAuthDestination(null)
-            navigate('/start-club/new')
-            return
-        }
-
-        if (pendingPostAuthDestination === 'manage-club-dashboard') {
-            setPendingPostAuthDestination(null)
-            if (dashboardRoles.includes(userRole)) {
-                navigate('/admin')
-            } else {
-                setToastMessage('Only club officers, club advisors, and SGA officers can manage clubs.')
-                navigate('/')
-            }
-            return
-        }
-
         navigate(dashboardRoles.includes(userRole) ? '/admin' : '/me')
     }
 
@@ -291,93 +241,55 @@ function App() {
         const formData = new FormData(event.currentTarget)
         const name = (formData.get('name') || defaultUserProfile.name).toString()
         const email = (formData.get('email') || '').toString()
+        const emplid = (formData.get('emplid') || '').toString()
         const role = signupRole
         const assignedClub = requiresAssignedClub(role) ? signupAssignedClub : ''
 
-        const signedUpUser = buildUserProfile(name, role, assignedClub, email)
+        const signedUpUser = buildUserProfile(name, role, assignedClub, email, emplid)
 
         setCurrentUser(signedUpUser)
-        initAttendanceLog(signedUpUser)
         setStatusMessage(`Account created for ${role}.`)
         setSignupRole('student')
         setSignupAssignedClub('')
         event.currentTarget.reset()
-
-        if (pendingPostAuthDestination === 'start-club-form') {
-            setPendingPostAuthDestination(null)
-            navigate('/start-club/new')
-            return
-        }
-
-        if (pendingPostAuthDestination === 'manage-club-dashboard') {
-            setPendingPostAuthDestination(null)
-            if (dashboardRoles.includes(role)) {
-                navigate('/admin')
-            } else {
-                setToastMessage('Only club officers, club advisors, and SGA officers can manage clubs.')
-                navigate('/')
-            }
-            return
-        }
-
         navigate(dashboardRoles.includes(role) ? '/admin' : '/me')
     }
 
-    const route = resolveRoute(locationPath)
-    const currentClub = route.name === 'club' ? clubDirectory.find((club) => club.id === route.clubId) || null : null
-    const canAccessDashboard = currentUser && dashboardRoles.includes(currentUser.role)
-
-    const persistRegisteredEvents = (nextEvents) => {
-        setRegisteredEvents(nextEvents)
-        window.localStorage.setItem('registered-events', JSON.stringify(nextEvents))
+    const handleSignOut = () => {
+        setCurrentUser(null)
+        window.localStorage.removeItem('currentUser')
+        navigate('/')
     }
 
     const handleRsvp = (rsvpData) => {
-        const registration = {
-            id: `reg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            ...rsvpData,
-            registeredAt: new Date().toISOString(),
-            attended: false,
-            feedback: '',
+        setRegisteredEvents((prev) => [...prev, rsvpData])
+
+        // Record RSVP in per-club storage
+        if (rsvpData.clubId) {
+            addRsvpRecord(rsvpData.clubId, {
+                name: currentUser?.name || 'Anonymous',
+                emplid: currentUser?.emplid || '',
+                eventTitle: rsvpData.eventTitle,
+                date: rsvpData.eventDate,
+            })
         }
-        const nextEvents = [...registeredEvents, registration]
-        persistRegisteredEvents(nextEvents)
-        setToastMessage(`RSVP confirmed for ${rsvpData.eventTitle}.`)
-    }
 
-    const handleMarkAttended = (registrationId) => {
-        const nextEvents = registeredEvents.map((reg) => {
-            if (reg.id === registrationId) {
-                if (currentUser) {
-                    addAttendanceRecord(currentUser, {
-                        eventTitle: reg.eventTitle,
-                        eventDate: reg.eventDate,
-                        clubName: reg.clubName,
-                    })
-                }
-                return { ...reg, attended: true }
-            }
-            return reg
-        })
-        persistRegisteredEvents(nextEvents)
-        setToastMessage('Attendance marked successfully.')
-    }
-
-    const handleClubUpdate = (updatedClub) => {
-        // Find the club in the directory and update it
-        const clubIndex = clubDirectory.findIndex((c) => c.id === updatedClub.id)
-        if (clubIndex !== -1) {
-            clubDirectory[clubIndex] = updatedClub
-            setToastMessage(`Club "${updatedClub.name}" has been updated.`)
+        // Also add a pending attendance record for the club
+        if (rsvpData.clubId && currentUser) {
+            addClubAttendance(rsvpData.clubId, {
+                name: currentUser.name,
+                emplid: currentUser.emplid || '',
+                status: 'pending',
+                date: rsvpData.eventDate ? new Date(rsvpData.eventDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            })
         }
     }
 
-    const handleAddFeedback = (registrationId, feedbackText) => {
-        const nextEvents = registeredEvents.map((reg) =>
-            reg.id === registrationId ? { ...reg, feedback: feedbackText } : reg
-        )
-        persistRegisteredEvents(nextEvents)
-    }
+    const route = resolveRoute(locationPath)
+    const currentClub = route.name === 'club'
+        ? clubDirectory.find((club) => club.id === route.clubId) || null
+        : null
+    const canAccessDashboard = currentUser && dashboardRoles.includes(currentUser.role)
 
     const renderRoute = () => {
         if (route.name === 'home') {
@@ -390,18 +302,12 @@ function App() {
                     events={visibleEvents}
                     searchQuery={searchQuery}
                     onSearchQueryChange={setSearchQuery}
-                    onOpenSignup={goToStartClub}
-                    onOpenLogin={goToManageClub}
+                    onOpenSignup={() => goToAuth('signup')}
+                    onOpenLogin={() => goToAuth('login')}
                     onJoinClub={goToClubs}
-                    onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
                     onViewAllClubs={() => navigate('/clubs')}
                     onViewAllEvents={() => navigate('/events')}
                     onLightboxStateChange={setIsHeaderHidden}
-                    showDevSections={isDevContentVisible}
-                    currentUser={currentUser}
-                    registeredEvents={registeredEvents}
-                    onMarkAttended={handleMarkAttended}
-                    onAddFeedback={handleAddFeedback}
                 />
             )
         }
@@ -414,6 +320,7 @@ function App() {
                     signupRole={signupRole}
                     setSignupRole={(role) => {
                         setSignupRole(role)
+
                         if (!requiresAssignedClub(role)) {
                             setSignupAssignedClub('')
                         }
@@ -425,30 +332,16 @@ function App() {
                     onLoginSubmit={handleLoginSubmit}
                     onSignupSubmit={handleSignupSubmit}
                     onBackHome={() => navigate('/')}
-                    onChangeCampus={() => {
-                        setPendingCampusDestination('/auth')
-                        setIsCampusModalOpen(true)
-                    }}
                 />
             )
         }
 
         if (route.name === 'club') {
-            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} onRsvp={handleRsvp} registeredEvents={registeredEvents} onClubUpdate={handleClubUpdate} setToastMessage={setToastMessage} />
+            return <Club club={currentClub} currentUser={currentUser} onBackHome={() => navigate('/')} onOpenAuth={() => goToAuth('login')} onRsvp={handleRsvp} registeredEvents={registeredEvents} />
         }
 
         if (route.name === 'me') {
-            const attendanceLog = currentUser ? getAttendanceLog(currentUser) : null
-            return (
-                <Me
-                    currentUser={currentUser}
-                    registeredEvents={registeredEvents}
-                    attendanceLog={attendanceLog}
-                    onOpenAuth={() => goToAuth('login')}
-                    onBackHome={() => navigate('/')}
-                    onSignOut={handleSignOut}
-                />
-            )
+            return <Me currentUser={currentUser} onOpenAuth={() => goToAuth('login')} onBackHome={() => navigate('/')} onSignOut={handleSignOut} />
         }
 
         if (route.name === 'admin') {
@@ -466,31 +359,15 @@ function App() {
                 )
             }
 
-            return <Dashboard user={currentUser} clubs={visibleClubs} backendClubs={backendClubs} />
+            return <Dashboard user={currentUser} clubs={visibleClubs} data={dashboardData} />
         }
 
         if (route.name === 'clubs') {
-            return <ClubsPage selectedCampus={selectedCampus} clubs={visibleClubs} events={visibleEvents} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} onViewAllClubs={() => navigate('/clubs')} onViewAllEvents={() => navigate('/events')} onBackHome={() => navigate('/')} />
+            return <ClubsPage selectedCampus={selectedCampus} clubs={visibleClubs} events={visibleEvents} searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} onClubOpen={(clubId) => navigate(`/club/${clubId}`)} onViewAllClubs={() => navigate('/clubs')} onViewAllEvents={() => navigate('/events')} />
         }
 
         if (route.name === 'events') {
             return <EventsOverview events={visibleEvents} selectedCampus={selectedCampus} onBackHome={() => navigate('/')} />
-        }
-
-        if (route.name === 'search') {
-            return (
-                <SearchResults
-                    searchQuery={searchQuery}
-                    onSearchQueryChange={setSearchQuery}
-                    allClubs={clubDirectory}
-                    onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
-                    onBackHome={() => navigate('/')}
-                />
-            )
-        }
-
-        if (route.name === 'startClubForm') {
-            return <StartClubPage currentUser={currentUser} selectedCampus={selectedCampus} onRequireAuth={goToStartClub} />
         }
 
         return (
@@ -502,14 +379,12 @@ function App() {
                 events={visibleEvents}
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
-                onOpenSignup={goToStartClub}
-                onOpenLogin={goToManageClub}
+                onOpenSignup={() => goToAuth('signup')}
+                onOpenLogin={() => goToAuth('login')}
                 onJoinClub={goToClubs}
-                onClubOpen={(clubId) => navigate(`/club/${clubId}`)}
                 onViewAllClubs={() => navigate('/clubs')}
                 onViewAllEvents={() => navigate('/events')}
                 onLightboxStateChange={setIsHeaderHidden}
-                showDevSections={isDevContentVisible}
             />
         )
     }
@@ -521,10 +396,9 @@ function App() {
                     <Header
                         title={appTitle}
                         logoSrc={resolveSiteLogo()}
-                        showTitle={Boolean(selectedCampusId) && selectedCampusId !== BMCC_CAMPUS_ID}
+                        showTitle={Boolean(selectedCampusId)}
                         searchQuery={searchQuery}
                         onSearchChange={handleHeaderSearchChange}
-                        onSearchSubmit={handleHeaderSearchSubmit}
                         onClubsClick={goToClubs}
                         onAuthClick={() => goToAuth('login')}
                         themeMode={themeMode}
@@ -539,9 +413,8 @@ function App() {
                 {renderRoute()}
 
                 {statusMessage ? <p className={styles.app__contentStatus}>{statusMessage}</p> : null}
-                <Toast message={toastMessage} onClose={() => setToastMessage('')} />
 
-                <Footer title={appTitle} onDevToggle={() => setIsDevContentVisible((visible) => !visible)} />
+                <Footer title={appTitle} />
             </div>
 
             <Modal

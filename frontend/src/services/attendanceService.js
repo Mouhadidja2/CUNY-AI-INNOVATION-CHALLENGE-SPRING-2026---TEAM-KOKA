@@ -75,7 +75,7 @@ export function addAttendanceRecord(user, registration) {
             first_name: nameParts[0] || '',
             last_name: nameParts.slice(1).join(' ') || '',
             school_email: user.email || '',
-            emplid: '',
+            emplid: user.emplid || '',
         }).catch(() => { /* API save failed, localStorage record preserved */ })
     }
 

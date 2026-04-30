@@ -1,6 +1,15 @@
 import cunyBlueLogo from '../assets/CUNY_Logo_Blue_RGB.png'
 import bmccClubDirectoryCsvRaw from './2025-26 Club Directory Link.csv?raw'
 
+// Media pool for club banners and trending event thumbnails
+const mediaModules = import.meta.glob('../assets/media/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', { eager: true, import: 'default' })
+const mediaPool = Object.values(mediaModules)
+
+function pickMediaByIndex(index) {
+    if (!mediaPool.length) return cunyBlueLogo
+    return mediaPool[index % mediaPool.length]
+}
+
 export const BMCC_CAMPUS_ID = 'borough-of-manhattan-community-college'
 
 function slugify(value) {
@@ -82,7 +91,7 @@ function parseBmccClubDirectory(csvText) {
     const clubs = lines
         .slice(1)
         .map((line) => parseCsvLine(line))
-        .map((cells) => {
+        .map((cells, index) => {
             const name = cleanField(cells[indices.name])
             const email = cleanField(cells[indices.email])
             const room = cleanField(cells[indices.room])
@@ -105,7 +114,7 @@ function parseBmccClubDirectory(csvText) {
                 category: 'Campus',
                 shortDescription: `Campus club based in ${room || 'TBD room'} with weekly meetings.`,
                 description: `${name} hosts community and student engagement activities at BMCC.`,
-                banner: cunyBlueLogo,
+                banner: pickMediaByIndex(index),
                 meetingTime: meeting || 'TBD',
                 location: room || 'TBD',
                 email,
@@ -136,7 +145,29 @@ export const bmccClubDirectory20252026 = parseBmccClubDirectory(bmccClubDirector
 const cpcIndex = bmccClubDirectory20252026.findIndex((club) => club.id === 'computer-programming-club')
 if (cpcIndex !== -1) {
     bmccClubDirectory20252026[cpcIndex].advisor = 'Dr. Azhar'
-    bmccClubDirectory20252026[cpcIndex].officers = ['Advisor: Dr. Azhar']
+    bmccClubDirectory20252026[cpcIndex].instagram = 'https://www.instagram.com/bmcc_programmingclub/'
+    bmccClubDirectory20252026[cpcIndex].instagramHandle = '@bmcc_programmingclub'
+    bmccClubDirectory20252026[cpcIndex].socialLinks = {
+        instagram: 'https://www.instagram.com/bmcc_programmingclub/',
+    }
+    bmccClubDirectory20252026[cpcIndex].officerRoster = [
+        { name: 'Giovanna (Gia)', role: 'President', discord: 'vaana', email: 'gia.president@bmccprogramming.club' },
+        { name: 'Roselyn', role: 'Vice President', discord: 'roselynm55', email: 'roselyn.vp@bmccprogramming.club' },
+        { name: 'Adrian', role: 'Secretary', discord: 'heyimadrian', email: 'adrian.secretary@bmccprogramming.club' },
+        { name: 'Jon', role: 'Treasurer', discord: '_jonyo_', email: 'jon.treasurer@bmccprogramming.club' },
+    ]
+    bmccClubDirectory20252026[cpcIndex].officers = [
+        'Giovanna (Gia) — President',
+        'Roselyn — Vice President',
+        'Adrian — Secretary',
+        'Jon — Treasurer',
+    ]
+    bmccClubDirectory20252026[cpcIndex].semester = 'Spring 2026'
+    bmccClubDirectory20252026[cpcIndex].instagramPosts = [
+        'DPhEDUODtpo',
+        'DFvOHVHO_hE',
+        'DFWYNMmvVjS',
+    ]
     bmccClubDirectory20252026[cpcIndex].publicEvents = [
         // ── Past events ──
         {
@@ -209,7 +240,70 @@ if (cpcIndex !== -1) {
     ]
 }
 
+// ── Inject Bike Club (not in CSV) ──
+bmccClubDirectory20252026.push({
+    id: 'bike-club',
+    name: 'Bike Club',
+    campus: BMCC_CAMPUS_ID,
+    category: 'Campus',
+    shortDescription: 'Learn to ride, repair, and maintain bikes with fellow students.',
+    description: 'Bike Club brings BMCC students together for group rides, maintenance workshops, and cycling advocacy on campus.',
+    banner: pickMediaByIndex(70),
+    meetingTime: 'Thursday 2pm-4pm',
+    location: 'F-101',
+    email: 'bmccbikeclub@gmail.com',
+    zoomLink: '',
+    advisor: 'TBD',
+    officers: [],
+    members: [],
+    publicEvents: [
+        {
+            id: 'bike-club-repair-workshop',
+            title: 'Riding and Repairing Bikes Workshop',
+            time: 'May 1, 2026 · 2:00 PM – 4:00 PM',
+            fixedDate: '2026-05-01T14:00:00',
+            fixedEndDate: '2026-05-01T16:00:00',
+        },
+        {
+            id: 'bike-club-weekly-meeting',
+            title: 'Weekly Club Meeting',
+            time: 'Thursday 2pm-4pm',
+        },
+    ],
+    trendingEvent: 'Riding and Repairing Bikes Workshop',
+})
+
+// ── Inject Chess Club Tournament event ──
+const chessIndex = bmccClubDirectory20252026.findIndex((c) => c.id === 'chess-club')
+if (chessIndex !== -1) {
+    bmccClubDirectory20252026[chessIndex].publicEvents.unshift({
+        id: 'chess-tournament-beginner',
+        title: 'Chess Club Tournament *Beginner-friendly!*',
+        time: 'May 3, 2026 · 5:00 PM – 7:00 PM',
+        fixedDate: '2026-05-03T17:00:00',
+        fixedEndDate: '2026-05-03T19:00:00',
+    })
+}
+
+// ── Inject 80s DJ Party into Music Club ──
+const musicIndex = bmccClubDirectory20252026.findIndex((c) => c.id === 'music-club')
+if (musicIndex !== -1) {
+    bmccClubDirectory20252026[musicIndex].publicEvents.unshift({
+        id: 'music-80s-dj-party',
+        title: '80s Costume DJ Party',
+        time: 'May 8, 2026 · 6:00 PM – 9:00 PM',
+        fixedDate: '2026-05-08T18:00:00',
+        fixedEndDate: '2026-05-08T21:00:00',
+    })
+}
+
 export const clubDirectory = bmccClubDirectory20252026
+
+// Helper to find a club's banner by id
+function clubBanner(id) {
+    const club = clubDirectory.find((c) => c.id === id)
+    return club ? club.banner : cunyBlueLogo
+}
 
 export const trendingEvents = [
     {
@@ -220,18 +314,38 @@ export const trendingEvents = [
         campus: BMCC_CAMPUS_ID,
         time: 'April 24–25, 2026 · 9 AM – 9 PM',
         blurb: 'A two-day hackathon-style challenge focused on AI for social good, hosted by the Computer Programming Club.',
-        banner: cunyBlueLogo,
+        banner: clubBanner('computer-programming-club'),
     },
-    ...clubDirectory.slice(0, 3).map((club) => ({
-        id: `${club.id}-featured`,
-        title: club.publicEvents[0]?.title || 'Club Meeting',
-        clubId: club.id,
-        clubName: club.name,
-        campus: club.campus,
-        time: club.meetingTime,
-        blurb: club.shortDescription,
-        banner: club.banner,
-    })),
+    {
+        id: 'chess-tournament-featured',
+        title: 'Chess Club Tournament *Beginner-friendly!*',
+        clubId: 'chess-club',
+        clubName: 'Chess Club',
+        campus: BMCC_CAMPUS_ID,
+        time: 'May 3, 2026 · 5:00 PM – 7:00 PM',
+        blurb: 'All skill levels welcome! Compete in a friendly tournament with prizes and coaching from experienced players.',
+        banner: clubBanner('chess-club'),
+    },
+    {
+        id: 'bike-repair-featured',
+        title: 'Riding and Repairing Bikes Workshop',
+        clubId: 'bike-club',
+        clubName: 'Bike Club',
+        campus: BMCC_CAMPUS_ID,
+        time: 'May 1, 2026 · 2:00 PM – 4:00 PM',
+        blurb: 'Hands-on workshop: learn basic bike maintenance, tire changes, and safe riding techniques.',
+        banner: clubBanner('bike-club'),
+    },
+    {
+        id: 'music-80s-dj-featured',
+        title: '80s Costume DJ Party',
+        clubId: 'music-club',
+        clubName: 'Music Club',
+        campus: BMCC_CAMPUS_ID,
+        time: 'May 8, 2026 · 6:00 PM – 9:00 PM',
+        blurb: 'Dress up in your best 80s outfit and dance the night away with live DJ sets and retro vibes.',
+        banner: clubBanner('music-club'),
+    },
 ]
 
 export const homeCategories = [...new Set(clubDirectory.map((club) => club.category))]
@@ -240,5 +354,6 @@ export const defaultUserProfile = {
     name: 'Jordan Student',
     role: 'student',
     assignedClub: '',
+    emplid: '',
     recentEvents: trendingEvents.slice(0, 3).map((event) => event.title),
 }

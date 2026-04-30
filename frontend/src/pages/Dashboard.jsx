@@ -14,8 +14,57 @@ import {
     createBudgetProposal,
     fetchEventsByClub,
 } from '../services/api'
+import {
+    getClubAttendance,
+    updateAttendanceStatus,
+    downloadClubAttendanceJson,
+} from '../services/clubAttendanceService'
 
-const dashboardActions = ['Budget proposals', 'Club events', 'Food orders', 'Ordering supplies', 'Reserve a room', 'Outside event forms']
+const dashboardActions = ['Attendance', 'Budget proposals', 'Club events', 'Food orders', 'Ordering supplies', 'Reserve a room', 'Outside event forms']
+
+const CPC_DUMMY_FOOD_ORDERS = [
+    {
+        id: 'dummy-fo-1',
+        order_type: 'MBJ',
+        status: 'APPROVED',
+        event_date: '2026-04-22',
+        total_cost: '185.00',
+        food_items: 'MBJ Cafeteria: Pizza (2 trays), Chicken Tenders (3 trays), Chocolate Cookies (4 dozen)',
+        contact_name: 'Kadidja Traore',
+        location: 'F-607',
+        headcount: 35,
+    },
+    {
+        id: 'dummy-fo-2',
+        order_type: 'MBJ',
+        status: 'PENDING',
+        event_date: '2026-04-29',
+        total_cost: '210.00',
+        food_items: 'MBJ Cafeteria: Pepperoni Pizza (3 trays), Chicken Tenders (2 trays), Chocolate Cookies (3 dozen), Lemonade (2 gallons)',
+        contact_name: 'Kyame Israel',
+        location: 'F-607',
+        headcount: 40,
+    },
+]
+
+const CPC_DUMMY_BUDGET_PROPOSALS = [
+    {
+        id: 'dummy-bp-1',
+        semester: 'Spring 2026 — AI Innovation Challenge',
+        status: 'APPROVED',
+        total_requested: 1200.00,
+        community_enhancement: 'Two-day AI hackathon engaging 80+ students in building AI for social good projects.',
+        reviewer_comment: 'Great initiative. Approved in full.',
+    },
+    {
+        id: 'dummy-bp-2',
+        semester: 'Spring 2026 — End-of-Semester Events',
+        status: 'PENDING',
+        total_requested: 750.00,
+        community_enhancement: 'Resume workshop, Big Tech Day, and Finals Relaxation Event to support student success.',
+        reviewer_comment: '',
+    },
+]
 
 function Dashboard({ user, clubs = [], backendClubs = [] }) {
     const clubNames = useMemo(() => clubs.map((c) => c.name), [clubs])
@@ -48,6 +97,9 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
     const [showEventScheduler, setShowEventScheduler] = useState(false)
     const [clubEvents, setClubEvents] = useState([])
 
+    // Attendance management state
+    const [attendees, setAttendees] = useState([])
+
     // Resolve the backend club ID for the currently selected club name
     const backendClubId = useMemo(() => {
         const match = backendClubs.find(
@@ -62,25 +114,39 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
         setSelectedClub(targetClub)
     }
 
+    // Resolve the club slug for the currently selected club
+    const clubSlug = useMemo(() => {
+        const club = clubs.find((c) => c.name === selectedClub)
+        return club ? club.id : ''
+    }, [clubs, selectedClub])
+
+    const isCPC = clubSlug === 'computer-programming-club'
+
     // Fetch food orders from the API when selected club changes
     useEffect(() => {
-        if (!backendClubId) return
+        if (!backendClubId) {
+            setFoodOrders(isCPC ? CPC_DUMMY_FOOD_ORDERS : [])
+            return
+        }
         let cancelled = false
         fetchFoodOrdersByClub(backendClubId)
-            .then((data) => { if (!cancelled) setFoodOrders(data) })
-            .catch(() => { if (!cancelled) setFoodOrders([]) })
+            .then((data) => { if (!cancelled) setFoodOrders(isCPC ? [...CPC_DUMMY_FOOD_ORDERS, ...data] : data) })
+            .catch(() => { if (!cancelled) setFoodOrders(isCPC ? CPC_DUMMY_FOOD_ORDERS : []) })
         return () => { cancelled = true }
-    }, [backendClubId])
+    }, [backendClubId, isCPC])
 
     // Fetch budget proposals from the API
     useEffect(() => {
-        if (!backendClubId) return
+        if (!backendClubId) {
+            setBudgetProposals(isCPC ? CPC_DUMMY_BUDGET_PROPOSALS : [])
+            return
+        }
         let cancelled = false
         fetchBudgetProposalsByClub(backendClubId)
-            .then((data) => { if (!cancelled) setBudgetProposals(data) })
-            .catch(() => { if (!cancelled) setBudgetProposals([]) })
+            .then((data) => { if (!cancelled) setBudgetProposals(isCPC ? [...CPC_DUMMY_BUDGET_PROPOSALS, ...data] : data) })
+            .catch(() => { if (!cancelled) setBudgetProposals(isCPC ? CPC_DUMMY_BUDGET_PROPOSALS : []) })
         return () => { cancelled = true }
-    }, [backendClubId])
+    }, [backendClubId, isCPC])
 
     // Fetch events from the API
     useEffect(() => {
@@ -91,6 +157,15 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
             .catch(() => { if (!cancelled) setClubEvents([]) })
         return () => { cancelled = true }
     }, [backendClubId])
+
+    // Load attendance records for the currently selected club
+    useEffect(() => {
+        if (clubSlug) {
+            setAttendees(getClubAttendance(clubSlug))
+        } else {
+            setAttendees([])
+        }
+    }, [clubSlug])
 
     // Early return after all hooks
     if (!user || !['club officer', 'club advisor', 'sga officer'].includes(user.role)) {
@@ -204,6 +279,16 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
         setDissolvedClubs((prev) => new Set([...prev, selectedClub]))
         setShowDissolveConfirm(false)
         setFoodOrderStatus(`Club "${selectedClub}" has been dissolved.`)
+    }
+
+    const handleAttendanceAction = (index, newStatus) => {
+        if (!clubSlug) return
+        const updated = updateAttendanceStatus(clubSlug, index, newStatus)
+        setAttendees(updated)
+    }
+
+    const handleExportAttendance = () => {
+        if (clubSlug) downloadClubAttendanceJson(clubSlug)
     }
 
     const handleBudgetReview = async (newStatus) => {
@@ -368,7 +453,55 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
                     ))}
                 </div>
 
-                {activeAction === 'Club events' ? (
+                {activeAction === 'Attendance' ? (
+                    <section className={styles.dashboard__foodOrderPanel}>
+                        <div className={styles.dashboard__panelHeader}>
+                            <div>
+                                <h3 className={styles.dashboard__title}>Attendance Management</h3>
+                                <p className={styles.dashboard__description}>Review and confirm student attendance for {selectedClub}</p>
+                            </div>
+                            <Button variant="ghost" onClick={handleExportAttendance}>
+                                Export JSON
+                            </Button>
+                        </div>
+
+                        {attendees.length ? (
+                            <div className={styles.dashboard__attendeeList}>
+                                <div className={styles.dashboard__attendeeHeader}>
+                                    <span className={styles.dashboard__attendeeCol}>Name</span>
+                                    <span className={styles.dashboard__attendeeCol}>EMPLID</span>
+                                    <span className={styles.dashboard__attendeeCol}>Date</span>
+                                    <span className={styles.dashboard__attendeeCol}>Status</span>
+                                    <span className={styles.dashboard__attendeeCol}>Actions</span>
+                                </div>
+                                {attendees.map((a, i) => (
+                                    <div key={`${a.emplid}-${i}`} className={styles.dashboard__attendeeRow}>
+                                        <span className={styles.dashboard__attendeeCol}>{a.name}</span>
+                                        <span className={styles.dashboard__attendeeCol}>{a.emplid}</span>
+                                        <span className={styles.dashboard__attendeeCol}>{a.date}</span>
+                                        <span className={`${styles.dashboard__attendeeCol} ${styles[`dashboard__status--${a.status}`] || ''}`.trim()}>
+                                            {a.status === 'present' ? '✅ Present' : a.status === 'absent' ? '❌ Absent' : '⏳ Pending'}
+                                        </span>
+                                        <span className={styles.dashboard__attendeeCol}>
+                                            {a.status !== 'present' && (
+                                                <Button variant="ghost" onClick={() => handleAttendanceAction(i, 'present')}>
+                                                    Confirm
+                                                </Button>
+                                            )}
+                                            {a.status !== 'absent' && (
+                                                <Button variant="ghost" onClick={() => handleAttendanceAction(i, 'absent')}>
+                                                    Reject
+                                                </Button>
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className={styles.dashboard__description}>No attendance records yet for this club.</p>
+                        )}
+                    </section>
+                ) : activeAction === 'Club events' ? (
                     <section className={styles.dashboard__panel}>
                         <div className={styles.dashboard__panelHeader}>
                             <div>
@@ -451,7 +584,9 @@ function Dashboard({ user, clubs = [], backendClubs = [] }) {
                                 <ul className={styles.dashboard__orderItems}>
                                     {foodOrders.map((order) => (
                                         <li key={order.id}>
-                                            {order.order_type === 'MBJ' ? 'MBJ' : 'Out-of-Network'} — {order.event_date || 'No date'} — {order.status} — ${order.total_cost || '0.00'}
+                                            <strong>{order.order_type === 'MBJ' ? 'MBJ' : 'Out-of-Network'}</strong> — {order.event_date || 'No date'} — {order.status} — ${order.total_cost || '0.00'}
+                                            {order.food_items ? <br /> : null}
+                                            {order.food_items ? <span className={styles.dashboard__reviewComment}>{order.food_items}</span> : null}
                                         </li>
                                     ))}
                                 </ul>

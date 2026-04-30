@@ -49,6 +49,10 @@ function AuthPortal({
                             <input className={styles.authPortal__input} name="email" type="email" placeholder="student@school.edu" required />
                         </label>
                         <label className={styles.authPortal__field}>
+                            <span className={styles.authPortal__label}>EMPLID</span>
+                            <input className={styles.authPortal__input} name="emplid" type="text" placeholder="12345678" pattern="[0-9]{8}" maxLength="8" required />
+                        </label>
+                        <label className={styles.authPortal__field}>
                             <span className={styles.authPortal__label}>Password</span>
                             <input className={styles.authPortal__input} name="password" type="password" placeholder="••••••••" required />
                         </label>
@@ -85,6 +89,10 @@ function AuthPortal({
                         <label className={styles.authPortal__field}>
                             <span className={styles.authPortal__label}>Email</span>
                             <input className={styles.authPortal__input} name="email" type="email" placeholder="student@school.edu" required />
+                        </label>
+                        <label className={styles.authPortal__field}>
+                            <span className={styles.authPortal__label}>EMPLID</span>
+                            <input className={styles.authPortal__input} name="emplid" type="text" placeholder="12345678" pattern="[0-9]{8}" maxLength="8" required />
                         </label>
                         <label className={styles.authPortal__field}>
                             <span className={styles.authPortal__label}>Password</span>
