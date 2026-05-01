@@ -7,10 +7,12 @@
     width: 100%;
     box-sizing: border-box;
     z-index: 1000;
+    border-width: 10px;
+
 
     border: none;
     border-radius: 0; // Starts flat
-    background-color: var(--color-white);
+    background-color:indigo;
     padding: 0.95rem 1rem;
     display: flex;
     align-items: center;
