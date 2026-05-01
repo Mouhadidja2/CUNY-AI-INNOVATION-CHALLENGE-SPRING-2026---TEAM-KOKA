@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPencil } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faEnvelope, faChevronDown, faChevronUp, faLocationDot, faClock, faDoorOpen, faUserTie } from '@fortawesome/free-solid-svg-icons'
+import { faDiscord, faInstagram } from '@fortawesome/free-brands-svg-icons'
 import Button from '../components/Button/Button'
 import Modal from '../components/Modal/Modal'
 import RsvpModal from '../components/RsvpModal/RsvpModal'
+import ClubComments from '../components/ClubComments/ClubComments'
+import InstagramFeed from '../components/InstagramFeed/InstagramFeed'
 import styles from './club.module.scss'
 
 function getEventCardsPerPage(width) {
@@ -24,6 +27,7 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
     const [rsvpEvent, setRsvpEvent] = useState(null)
     const [showEditModal, setShowEditModal] = useState(false)
     const [bannerPreview, setBannerPreview] = useState(null)
+    const [officersOpen, setOfficersOpen] = useState(false)
     const [editForm, setEditForm] = useState({
         name: '',
         description: '',
@@ -66,14 +70,17 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
             return
         }
 
-        // Check if event is in the past
-        const eventDate = event.fixedDate ? new Date(event.fixedDate) : null
+        // Allow RSVP / mark-present up to 48 hours after the event ends
+        const refDate = event.fixedEndDate ? new Date(event.fixedEndDate) : event.fixedDate ? new Date(event.fixedDate) : null
         const now = new Date()
-        if (eventDate && eventDate < now) {
-            if (setToastMessage) {
-                setToastMessage('Cannot RSVP for events that have already passed.')
+        if (refDate) {
+            const cutoff = new Date(refDate.getTime() + 48 * 60 * 60 * 1000)
+            if (now > cutoff) {
+                if (setToastMessage) {
+                    setToastMessage('The 48-hour window to RSVP or mark attendance for this event has passed.')
+                }
+                return
             }
-            return
         }
 
         setRsvpEvent(event)
@@ -94,14 +101,17 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
         // RSVP for the first public event if available
         const firstEvent = club.publicEvents[0]
         if (firstEvent && !isEventRegistered(firstEvent.id)) {
-            // Check if event is in the past
-            const eventDate = firstEvent.fixedDate ? new Date(firstEvent.fixedDate) : null
+            // Allow RSVP / mark-present up to 48 hours after the event ends
+            const refDate = firstEvent.fixedEndDate ? new Date(firstEvent.fixedEndDate) : firstEvent.fixedDate ? new Date(firstEvent.fixedDate) : null
             const now = new Date()
-            if (eventDate && eventDate < now) {
-                if (setToastMessage) {
-                    setToastMessage('Cannot RSVP for events that have already passed.')
+            if (refDate) {
+                const cutoff = new Date(refDate.getTime() + 48 * 60 * 60 * 1000)
+                if (now > cutoff) {
+                    if (setToastMessage) {
+                        setToastMessage('The 48-hour window to RSVP or mark attendance for this event has passed.')
+                    }
+                    return
                 }
-                return
             }
             setRsvpEvent(firstEvent)
         }
@@ -170,25 +180,49 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                     )}
                 </div>
                 <article className={styles.club__intro}>
-                    <p className={styles.club__eyebrow}>{club.category}</p>
+                    <p className={styles.club__eyebrow}>{club.category}{club.semester ? ` · ${club.semester}` : ''}</p>
                     <h2 className={styles.club__title}>{club.name}</h2>
                     <p className={styles.club__description}>{club.description}</p>
-                    <p className={styles.club__meta}>
-                        Meets {club.meetingTime} at {club.location}
-                    </p>
-                    <ul className={styles.club__list}>
-                        {club.email ? (
-                            <li>
-                                Contact: <a href={`mailto:${club.email}`}>{club.email}</a>
-                            </li>
+
+                    <div className={styles.club__infoGrid}>
+                        <span className={styles.club__infoItem}>
+                            <FontAwesomeIcon icon={faClock} className={styles.club__infoIcon} />
+                            {club.meetingTime || 'TBD'}
+                        </span>
+                        <span className={styles.club__infoItem}>
+                            <FontAwesomeIcon icon={faDoorOpen} className={styles.club__infoIcon} />
+                            Room {club.location || 'TBD'}
+                        </span>
+                        <span className={styles.club__infoItem}>
+                            <FontAwesomeIcon icon={faLocationDot} className={styles.club__infoIcon} />
+                            BMCC Campus
+                        </span>
+                        {club.advisor ? (
+                            <span className={styles.club__infoItem}>
+                                <FontAwesomeIcon icon={faUserTie} className={styles.club__infoIcon} />
+                                Advisor: {club.advisor}
+                            </span>
                         ) : null}
-                        {club.advisor ? <li>Club advisor: {club.advisor}</li> : null}
-                        {club.zoomLink ? (
-                            <li>
-                                Zoom: <a href={club.zoomLink}>{club.zoomLink}</a>
-                            </li>
-                        ) : null}
-                    </ul>
+                    </div>
+
+                    {club.email ? (
+                        <p className={styles.club__meta}>
+                            <FontAwesomeIcon icon={faEnvelope} className={styles.club__infoIcon} />
+                            <a href={`mailto:${club.email}`}>{club.email}</a>
+                        </p>
+                    ) : null}
+                    {club.zoomLink ? (
+                        <p className={styles.club__meta}>
+                            Zoom: <a href={club.zoomLink} target="_blank" rel="noopener noreferrer">{club.zoomLink}</a>
+                        </p>
+                    ) : null}
+                    {club.instagram ? (
+                        <p className={styles.club__meta}>
+                            <FontAwesomeIcon icon={faInstagram} className={styles.club__infoIcon} style={{ color: '#e1306c' }} />
+                            <a href={club.instagram} target="_blank" rel="noopener noreferrer">{club.instagramHandle || 'Instagram'}</a>
+                        </p>
+                    ) : null}
+
                     <div className={styles.club__actions}>
                         <Button onClick={onBackHome} variant="ghost">
                             Back to home
@@ -200,6 +234,61 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                 </article>
             </section>
 
+            {/* ── Officers Section ── */}
+            <section className={styles.club__panel}>
+                <button
+                    type="button"
+                    className={styles.club__officerToggle}
+                    onClick={() => setOfficersOpen((prev) => !prev)}
+                >
+                    <h3 className={styles.club__panelTitle} style={{ margin: 0 }}>
+                        {club.semester ? `${club.semester} ` : ''}Club Officers
+                    </h3>
+                    <FontAwesomeIcon icon={officersOpen ? faChevronUp : faChevronDown} />
+                </button>
+
+                {officersOpen ? (
+                    <div className={styles.club__officerList}>
+                        {(club.officerRoster || []).length ? (
+                            club.officerRoster.map((officer) => (
+                                <div key={officer.name} className={styles.club__officerCard}>
+                                    <div className={styles.club__officerInfo}>
+                                        <p className={styles.club__officerName}>{officer.name}</p>
+                                        <p className={styles.club__officerRole}>{officer.role}</p>
+                                    </div>
+                                    <div className={styles.club__officerActions}>
+                                        {officer.discord ? (
+                                            <span className={styles.club__officerBadge} title={`Discord: @${officer.discord}`}>
+                                                <FontAwesomeIcon icon={faDiscord} className={styles.club__discordIcon} />
+                                                <span className={styles.club__discordTag}>@{officer.discord}</span>
+                                            </span>
+                                        ) : null}
+                                        {officer.email ? (
+                                            <a
+                                                href={`mailto:${officer.email}`}
+                                                className={styles.club__officerBadge}
+                                                title={`Email ${officer.name}`}
+                                            >
+                                                <FontAwesomeIcon icon={faEnvelope} />
+                                            </a>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className={styles.club__officerList}>
+                                {club.officers.length ? club.officers.map((o) => (
+                                    <div key={o} className={styles.club__officerCard}>
+                                        <p className={styles.club__officerName}>{o}</p>
+                                    </div>
+                                )) : <p className={styles.club__empty}>Officer roster will be posted soon.</p>}
+                            </div>
+                        )}
+                    </div>
+                ) : null}
+            </section>
+
+            {/* ── Tabs: About / Members / Social ── */}
             <section className={styles.club__panel}>
                 <div className={styles.club__tabs}>
                     <button
@@ -208,6 +297,13 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                         onClick={() => setActiveTab('about')}
                     >
                         About
+                    </button>
+                    <button
+                        className={`${styles.club__tab} ${activeTab === 'social' ? styles['club__tab--active'] : ''}`.trim()}
+                        type="button"
+                        onClick={() => setActiveTab('social')}
+                    >
+                        Social Media
                     </button>
                     <button
                         className={`${styles.club__tab} ${activeTab === 'members' ? styles['club__tab--active'] : ''}`.trim()}
@@ -223,14 +319,6 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                         <div>
                             <h3 className={styles.club__panelTitle}>About this club</h3>
                             <p className={styles.club__description}>{club.description}</p>
-                            <p className={styles.club__meta}>Room: {club.location}</p>
-                            <p className={styles.club__meta}>Meeting info: {club.meetingTime}</p>
-                            {club.zoomLink ? <p className={styles.club__meta}>Zoom link / meeting: {club.zoomLink}</p> : null}
-                            {club.email ? <p className={styles.club__meta}>Club email: {club.email}</p> : null}
-                            {club.advisor ? <p className={styles.club__meta}>Club advisor: {club.advisor}</p> : null}
-                            <ul className={styles.club__list}>
-                                {club.officers.length ? club.officers.map((officer) => <li key={officer}>{officer}</li>) : <li>Officer roster will be posted soon.</li>}
-                            </ul>
 
                             <div className={styles.club__highlights}>
                                 <article className={styles.club__highlightCard}>
@@ -246,6 +334,20 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                                     <p className={styles.club__highlightText}>Start by joining a public event, then connect with officers for recurring member updates.</p>
                                 </article>
                             </div>
+                        </div>
+                    ) : null}
+
+                    {activeTab === 'social' ? (
+                        <div>
+                            {club.instagramPosts?.length ? (
+                                <InstagramFeed
+                                    postShortcodes={club.instagramPosts}
+                                    handle={club.instagramHandle || ''}
+                                    profileUrl={club.instagram || ''}
+                                />
+                            ) : (
+                                <p className={styles.club__empty}>This club hasn&rsquo;t linked any social media accounts yet.</p>
+                            )}
                         </div>
                     ) : null}
 
@@ -316,6 +418,10 @@ function Club({ club, currentUser, onBackHome, onOpenAuth, onRsvp, registeredEve
                         <p className={styles.club__empty}>No public events have been posted yet.</p>
                     )}
                 </div>
+            </section>
+
+            <section className={styles.club__panel}>
+                <ClubComments clubId={club.id} currentUser={currentUser} />
             </section>
 
             {rsvpEvent ? (

@@ -220,7 +220,6 @@ function ClubsHub({
                                 description={club.shortDescription}
                                 logoSrc={club.banner}
                                 href={`/club/${club.id}`}
-                                onNavigate={() => onClubOpen(club.id)}
                                 target="_self"
                                 ctaLabel="View profile"
                             />
@@ -276,7 +275,6 @@ function ClubsHub({
                             description={`${event.clubName} · ${event.time} · ${event.blurb}`}
                             logoSrc={event.banner}
                             href={`/club/${event.clubId}`}
-                            onNavigate={() => onClubOpen(event.clubId)}
                             target="_self"
                             ctaLabel="Open event club"
                         />

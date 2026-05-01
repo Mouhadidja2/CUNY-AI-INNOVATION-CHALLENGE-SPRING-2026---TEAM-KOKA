@@ -4,53 +4,70 @@ import MetricPill from '../components/Dashboard/MetricPill'
 import DashboardPanel from '../components/Dashboard/DashboardPanel'
 import Button from '../components/Button/Button'
 import Modal from '../components/Modal/Modal'
-import { demoMode } from '../App'
 import styles from './dashboard.module.scss'
-import { slugify } from '../utils/slugify.js'
 import RoomReservation from '../components/RoomReservation/RoomReservation.jsx'
+import EventScheduler from '../components/EventScheduler/EventScheduler.jsx'
+import {
+    fetchFoodOrdersByClub,
+    createFoodOrder,
+    fetchBudgetProposalsByClub,
+    createBudgetProposal,
+    fetchEventsByClub,
+} from '../services/api'
+import {
+    getClubAttendance,
+    updateAttendanceStatus,
+    downloadClubAttendanceJson,
+} from '../services/clubAttendanceService'
 
-// Demo data for BMCC Programming Club
-const demoRecentEvents = [
-    { id: 'demo-1', title: 'Arduino Workshop', date: '2026-04-15', displayDate: 'April 15, 2026 · Wednesday', attended: 23 },
-    { id: 'demo-2', title: 'Data Science Workshop', date: '2026-04-22', displayDate: 'April 22, 2026 · Wednesday', attended: 31 },
-    { id: 'demo-3', title: 'Big Tech Day', date: '2026-04-29', displayDate: 'April 29, 2026 · Wednesday', attended: 42 },
-    { id: 'demo-4', title: 'Resume Review Workshop', date: '2026-05-06', displayDate: 'May 6, 2026 · Wednesday', attended: 19 },
-    { id: 'demo-5', title: 'Finals Relaxation', date: '2026-05-13', displayDate: 'May 13, 2026 · Wednesday', attended: 37 },
+const dashboardActions = ['Attendance', 'Budget proposals', 'Club events', 'Food orders', 'Ordering supplies', 'Reserve a room', 'Outside event forms']
+
+const CPC_DUMMY_FOOD_ORDERS = [
+    {
+        id: 'dummy-fo-1',
+        order_type: 'MBJ',
+        status: 'APPROVED',
+        event_date: '2026-04-22',
+        total_cost: '185.00',
+        food_items: 'MBJ Cafeteria: Pizza (2 trays), Chicken Tenders (3 trays), Chocolate Cookies (4 dozen)',
+        contact_name: 'Kadidja Traore',
+        location: 'F-607',
+        headcount: 35,
+    },
+    {
+        id: 'dummy-fo-2',
+        order_type: 'MBJ',
+        status: 'PENDING',
+        event_date: '2026-04-29',
+        total_cost: '210.00',
+        food_items: 'MBJ Cafeteria: Pepperoni Pizza (3 trays), Chicken Tenders (2 trays), Chocolate Cookies (3 dozen), Lemonade (2 gallons)',
+        contact_name: 'Kyame Israel',
+        location: 'F-607',
+        headcount: 40,
+    },
 ]
 
-// TBD events with random votes for demo
-const generateDemoVotes = () => Math.floor(Math.random() * 50) + 1
-const demoTbdEvents = [
-    { id: 'tbd-1', title: 'Game Design Workshop', votes: generateDemoVotes() },
-    { id: 'tbd-2', title: 'Cloud Computing Workshop', votes: generateDemoVotes() },
-    { id: 'tbd-3', title: 'Mini-hackathon event', votes: generateDemoVotes() },
+const CPC_DUMMY_BUDGET_PROPOSALS = [
+    {
+        id: 'dummy-bp-1',
+        semester: 'Spring 2026 — AI Innovation Challenge',
+        status: 'APPROVED',
+        total_requested: 1200.00,
+        community_enhancement: 'Two-day AI hackathon engaging 80+ students in building AI for social good projects.',
+        reviewer_comment: 'Great initiative. Approved in full.',
+    },
+    {
+        id: 'dummy-bp-2',
+        semester: 'Spring 2026 — End-of-Semester Events',
+        status: 'PENDING',
+        total_requested: 750.00,
+        community_enhancement: 'Resume workshop, Big Tech Day, and Finals Relaxation Event to support student success.',
+        reviewer_comment: '',
+    },
 ]
 
-// Demo food orders
-const demoFoodOrders = [
-    { id: 'food-1', items: 'Pizza (8), Soda (12), Cookies (24)', event: 'Arduino Workshop', date: 'Apr 15' },
-    { id: 'food-2', items: 'Sandwiches (15), Chips (15), Water (20)', event: 'Data Science Workshop', date: 'Apr 22' },
-    { id: 'food-3', items: 'Burritos (20), Guac & Chips (10), Soda (25)', event: 'Big Tech Day', date: 'Apr 29' },
-]
-
-// Demo budget proposals
-const demoBudgetProposals = [
-    { id: 'prop-2', title: 'Proposal #02 — 3/21/26', status: 'approved' },
-    { id: 'prop-1', title: 'Proposal #01 — 2/23/26', status: 'denied' },
-]
-
-
-function getMonthDaySuffix() {
-    const now = new Date()
-    const month = now.toLocaleString('en-US', { month: 'short' }).toLowerCase()
-    const day = now.getDate()
-    return `${month}${day}`
-}
-
-const dashboardActions = ['Budget proposals', 'Club events', 'Food orders', 'Ordering supplies', 'Reserve a room', 'Outside event forms']
-
-function Dashboard({ user, data, clubs = [] }) {
-    const clubNames = useMemo(() => Object.keys(data), [data])
+function Dashboard({ user, clubs = [], backendClubs = [] }) {
+    const clubNames = useMemo(() => clubs.map((c) => c.name), [clubs])
     const fallbackClub = clubNames[0] || ''
     const isClubScopedRole = user?.role === 'club officer' || user?.role === 'club advisor'
     const forcedClub = isClubScopedRole ? user?.assignedClub || fallbackClub : null
@@ -66,10 +83,30 @@ function Dashboard({ user, data, clubs = [] }) {
     const [showBudgetForm, setShowBudgetForm] = useState(false)
     const [budgetProposalStatus, setBudgetProposalStatus] = useState('')
     const [budgetProposals, setBudgetProposals] = useState([])
+    const [selectedProposal, setSelectedProposal] = useState(null)
+    const [reviewComment, setReviewComment] = useState('')
+    const [showReviewModal, setShowReviewModal] = useState(false)
+    const [showDissolveConfirm, setShowDissolveConfirm] = useState(false)
+    const [dissolvedClubs, setDissolvedClubs] = useState(new Set())
 
     // Room reservation state
     const [showRoomReservation, setShowRoomReservation] = useState(false)
     const [selectedRoom, setSelectedRoom] = useState(null)
+
+    // Event scheduler state
+    const [showEventScheduler, setShowEventScheduler] = useState(false)
+    const [clubEvents, setClubEvents] = useState([])
+
+    // Attendance management state
+    const [attendees, setAttendees] = useState([])
+
+    // Resolve the backend club ID for the currently selected club name
+    const backendClubId = useMemo(() => {
+        const match = backendClubs.find(
+            (bc) => bc.name.toLowerCase() === (selectedClub || '').toLowerCase()
+        )
+        return match ? match.id : null
+    }, [backendClubs, selectedClub])
 
     // Sync selected club when forced club changes
     const targetClub = forcedClub || fallbackClub
@@ -77,24 +114,58 @@ function Dashboard({ user, data, clubs = [] }) {
         setSelectedClub(targetClub)
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        const savedQueue = JSON.parse(window.localStorage.getItem('food-order-queue') || '[]')
-        const filtered = savedQueue.filter((entry) => entry.clubName === selectedClub)
-        setFoodOrders(filtered)
-        // Intentionally using setState in effect to sync localStorage with React state
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-    }, [selectedClub])
+    // Resolve the club slug for the currently selected club
+    const clubSlug = useMemo(() => {
+        const club = clubs.find((c) => c.name === selectedClub)
+        return club ? club.id : ''
+    }, [clubs, selectedClub])
 
-    // Load budget proposals from localStorage
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const isCPC = clubSlug === 'computer-programming-club'
+
+    // Fetch food orders from the API when selected club changes
     useEffect(() => {
-        const savedProposals = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
-        const filtered = savedProposals.filter((entry) => entry.clubName === selectedClub)
-        setBudgetProposals(filtered)
-        // Intentionally using setState in effect to sync localStorage with React state
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-    }, [selectedClub])
+        if (!backendClubId) {
+            setFoodOrders(isCPC ? CPC_DUMMY_FOOD_ORDERS : [])
+            return
+        }
+        let cancelled = false
+        fetchFoodOrdersByClub(backendClubId)
+            .then((data) => { if (!cancelled) setFoodOrders(isCPC ? [...CPC_DUMMY_FOOD_ORDERS, ...data] : data) })
+            .catch(() => { if (!cancelled) setFoodOrders(isCPC ? CPC_DUMMY_FOOD_ORDERS : []) })
+        return () => { cancelled = true }
+    }, [backendClubId, isCPC])
+
+    // Fetch budget proposals from the API
+    useEffect(() => {
+        if (!backendClubId) {
+            setBudgetProposals(isCPC ? CPC_DUMMY_BUDGET_PROPOSALS : [])
+            return
+        }
+        let cancelled = false
+        fetchBudgetProposalsByClub(backendClubId)
+            .then((data) => { if (!cancelled) setBudgetProposals(isCPC ? [...CPC_DUMMY_BUDGET_PROPOSALS, ...data] : data) })
+            .catch(() => { if (!cancelled) setBudgetProposals(isCPC ? CPC_DUMMY_BUDGET_PROPOSALS : []) })
+        return () => { cancelled = true }
+    }, [backendClubId, isCPC])
+
+    // Fetch events from the API
+    useEffect(() => {
+        if (!backendClubId) return
+        let cancelled = false
+        fetchEventsByClub(backendClubId)
+            .then((data) => { if (!cancelled) setClubEvents(data) })
+            .catch(() => { if (!cancelled) setClubEvents([]) })
+        return () => { cancelled = true }
+    }, [backendClubId])
+
+    // Load attendance records for the currently selected club
+    useEffect(() => {
+        if (clubSlug) {
+            setAttendees(getClubAttendance(clubSlug))
+        } else {
+            setAttendees([])
+        }
+    }, [clubSlug])
 
     // Early return after all hooks
     if (!user || !['club officer', 'club advisor', 'sga officer'].includes(user.role)) {
@@ -111,12 +182,13 @@ function Dashboard({ user, data, clubs = [] }) {
     }
 
     const clubInfo = clubs.find(c => c.name === selectedClub) || {}
-    const clubData = data[selectedClub] || {
-        attendance: [],
-        budgetProposals: [],
-        recentEvents: [],
-        recentFoodOrders: [],
-    }
+
+    // Build summary metrics from API data
+    const attendanceMetrics = [
+        { label: 'Food Orders', value: String(foodOrders.length) },
+        { label: 'Budget Proposals', value: String(budgetProposals.length) },
+        { label: 'Club Events', value: String(clubEvents.length) },
+    ]
     // Get recent held events (events with dates in the past)
     const now = new Date()
     const recentHeldEvents = (clubInfo.publicEvents || []).filter(event => {
@@ -126,10 +198,6 @@ function Dashboard({ user, data, clubs = [] }) {
         }
         return false
     }).slice(0, 5) // Show last 5 events
-
-    const selectedClubSlug = slugify(selectedClub || 'club')
-    const folderPath = `src/data/by-clubs/${selectedClubSlug}/food-orders/`
-    const budgetFolderPath = `src/data/by-clubs/${selectedClubSlug}/budget-proposals/`
 
     const handleFoodOrderTypeSelect = (type) => {
         setShowFoodOrderTypeModal(false)
@@ -142,117 +210,111 @@ function Dashboard({ user, data, clubs = [] }) {
         }
     }
 
-    const handleMbjOrderSubmit = (event) => {
+    const handleMbjOrderSubmit = async (event) => {
         event.preventDefault()
+        if (!backendClubId) { setFoodOrderStatus('No matching backend club found. Please ensure the club exists in the database.'); return }
 
         const formData = new FormData(event.currentTarget)
-        const eventDate = (formData.get('eventDate') || '').toString().trim()
-        const eventPlace = (formData.get('eventPlace') || '').toString().trim()
-        const payload = {
-            orderType: 'MBJ Order',
-            eventDate,
-            amountOfPeople: (formData.get('amountOfPeople') || '').toString().trim(),
-            setupTime: (formData.get('setupTime') || '').toString().trim(),
-            eventPlace,
-            requesterName: (formData.get('requesterName') || '').toString().trim(),
-            phoneNumber: (formData.get('phoneNumber') || '').toString().trim(),
-            orderDetails: (formData.get('orderDetails') || '').toString().trim(),
-            total: (formData.get('total') || '').toString().trim(),
-            clubName: (formData.get('clubName') || '').toString().trim(),
-            submittedAt: new Date().toISOString(),
+        const apiPayload = {
+            club: backendClubId,
+            order_type: 'MBJ',
+            status: 'PENDING',
+            contact_name: (formData.get('requesterName') || '').toString().trim(),
+            contact_phone: (formData.get('phoneNumber') || '').toString().trim(),
+            event_date: (formData.get('eventDate') || '').toString().trim() || null,
+            setup_time: (formData.get('setupTime') || '').toString().trim() || null,
+            location: (formData.get('eventPlace') || '').toString().trim(),
+            headcount: parseInt(formData.get('amountOfPeople') || '0', 10),
+            food_items: (formData.get('orderDetails') || '').toString().trim(),
+            total_cost: (formData.get('total') || '').toString().trim(),
         }
 
-        // New naming: apr25_mbj-order_chess-club.json
-        const dateSuffix = getMonthDaySuffix()
-        const fileName = `${dateSuffix}_mbj-order_${selectedClubSlug}.json`
-        const jsonString = JSON.stringify(payload, null, 2)
-        const blob = new Blob([jsonString], { type: 'application/json' })
-        const blobUrl = URL.createObjectURL(blob)
-        const downloadLink = document.createElement('a')
-        downloadLink.href = blobUrl
-        downloadLink.download = fileName
-        downloadLink.click()
-        URL.revokeObjectURL(blobUrl)
-
-        const queuedItem = { fileName, folderPath, clubName: selectedClub, payload }
-        const existingQueue = JSON.parse(window.localStorage.getItem('food-order-queue') || '[]')
-        const nextQueue = [...existingQueue, queuedItem]
-        window.localStorage.setItem('food-order-queue', JSON.stringify(nextQueue))
-        setFoodOrders(nextQueue.filter((entry) => entry.clubName === selectedClub))
-
-        setFoodOrderStatus(`MBJ Order created as ${fileName}. Save it to ${folderPath}`)
+        try {
+            await createFoodOrder(apiPayload)
+            const updated = await fetchFoodOrdersByClub(backendClubId)
+            setFoodOrders(updated)
+            setFoodOrderStatus('MBJ Order submitted successfully!')
+        } catch (err) {
+            setFoodOrderStatus(`Error submitting order: ${err.message}`)
+        }
         setShowMbjForm(false)
         event.currentTarget.reset()
     }
 
-    const handleOutOfNetworkSubmit = (event) => {
+    const handleOutOfNetworkSubmit = async (event) => {
         event.preventDefault()
+        if (!backendClubId) { setFoodOrderStatus('No matching backend club found.'); return }
 
         const formData = new FormData(event.currentTarget)
-        const eventDate = (formData.get('eventDate') || '').toString().trim()
-        const eventPlace = (formData.get('eventPlace') || '').toString().trim()
-
-        // Get file inputs for menu pictures
-        const menuPicturesInput = event.currentTarget.querySelector('input[name="menuPictures"]')
-        const menuPictures = menuPicturesInput?.files ? Array.from(menuPicturesInput.files).map(f => f.name) : []
-
-        const payload = {
-            orderType: 'Out-of-Network Order',
-            eventDate,
-            amountOfPeople: (formData.get('amountOfPeople') || '').toString().trim(),
-            setupTime: (formData.get('setupTime') || '').toString().trim(),
-            eventPlace,
-            requesterName: (formData.get('requesterName') || '').toString().trim(),
-            phoneNumber: (formData.get('phoneNumber') || '').toString().trim(),
-            vendorName: (formData.get('vendorName') || '').toString().trim(),
-            quote1: (formData.get('quote1') || '').toString().trim(),
-            quote2: (formData.get('quote2') || '').toString().trim(),
-            quote3: (formData.get('quote3') || '').toString().trim(),
-            menuPictures,
-            orderDetails: (formData.get('orderDetails') || '').toString().trim(),
-            estimatedTotal: (formData.get('estimatedTotal') || '').toString().trim(),
-            clubName: (formData.get('clubName') || '').toString().trim(),
-            submittedAt: new Date().toISOString(),
-            status: 'Pending Approval',
+        const apiPayload = {
+            club: backendClubId,
+            order_type: 'OON',
+            status: 'PENDING',
+            contact_name: (formData.get('requesterName') || '').toString().trim(),
+            contact_phone: (formData.get('phoneNumber') || '').toString().trim(),
+            event_date: (formData.get('eventDate') || '').toString().trim() || null,
+            setup_time: (formData.get('setupTime') || '').toString().trim() || null,
+            location: (formData.get('eventPlace') || '').toString().trim(),
+            headcount: parseInt(formData.get('amountOfPeople') || '0', 10),
+            food_items: (formData.get('orderDetails') || '').toString().trim(),
+            total_cost: (formData.get('estimatedTotal') || '').toString().trim(),
         }
 
-        // New naming: apr25_out-of-network_chess-club.json
-        const dateSuffix = getMonthDaySuffix()
-        const fileName = `${dateSuffix}_out-of-network_${selectedClubSlug}.json`
-        const jsonString = JSON.stringify(payload, null, 2)
-        const blob = new Blob([jsonString], { type: 'application/json' })
-        const blobUrl = URL.createObjectURL(blob)
-        const downloadLink = document.createElement('a')
-        downloadLink.href = blobUrl
-        downloadLink.download = fileName
-        downloadLink.click()
-        URL.revokeObjectURL(blobUrl)
-
-        const queuedItem = { fileName, folderPath, clubName: selectedClub, payload }
-        const existingQueue = JSON.parse(window.localStorage.getItem('food-order-queue') || '[]')
-        const nextQueue = [...existingQueue, queuedItem]
-        window.localStorage.setItem('food-order-queue', JSON.stringify(nextQueue))
-        setFoodOrders(nextQueue.filter((entry) => entry.clubName === selectedClub))
-
-        setFoodOrderStatus(`Out-of-Network Order submitted as ${fileName}. Subject to approval. Save it to ${folderPath}`)
+        try {
+            await createFoodOrder(apiPayload)
+            const updated = await fetchFoodOrdersByClub(backendClubId)
+            setFoodOrders(updated)
+            setFoodOrderStatus('Out-of-Network Order submitted for approval!')
+        } catch (err) {
+            setFoodOrderStatus(`Error submitting order: ${err.message}`)
+        }
         setShowOutOfNetworkForm(false)
         event.currentTarget.reset()
     }
 
-    // Get next proposal number for the club
-    const getNextProposalNumber = () => {
-        const savedProposals = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
-        const clubProposals = savedProposals.filter((entry) => entry.clubName === selectedClub)
-        return clubProposals.length + 1
+    const canDissolve = user?.role === 'club advisor' || user?.role === 'sga officer'
+    const isClubDissolved = dissolvedClubs.has(selectedClub)
+
+    const handleDissolveClub = () => {
+        setDissolvedClubs((prev) => new Set([...prev, selectedClub]))
+        setShowDissolveConfirm(false)
+        setFoodOrderStatus(`Club "${selectedClub}" has been dissolved.`)
     }
 
-    const handleBudgetProposalSubmit = (event) => {
+    const handleAttendanceAction = (index, newStatus) => {
+        if (!clubSlug) return
+        const updated = updateAttendanceStatus(clubSlug, index, newStatus)
+        setAttendees(updated)
+    }
+
+    const handleExportAttendance = () => {
+        if (clubSlug) downloadClubAttendanceJson(clubSlug)
+    }
+
+    const handleBudgetReview = async (newStatus) => {
+        if (!selectedProposal) return
+        try {
+            const res = await fetch(`http://localhost:8000/api/budgets/${selectedProposal.id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus, reviewer_comment: reviewComment }),
+            })
+            if (!res.ok) throw new Error('Failed to update proposal')
+            const updated = await fetchBudgetProposalsByClub(backendClubId)
+            setBudgetProposals(updated)
+            setBudgetProposalStatus(`Proposal ${newStatus.toLowerCase()} successfully.`)
+        } catch (err) {
+            setBudgetProposalStatus(`Error: ${err.message}`)
+        }
+        setShowReviewModal(false)
+        setSelectedProposal(null)
+    }
+
+    const handleBudgetProposalSubmit = async (event) => {
         event.preventDefault()
+        if (!backendClubId) { setBudgetProposalStatus('No matching backend club found.'); return }
 
         const formData = new FormData(event.currentTarget)
-        const now = new Date()
-        const dateCompleted = now.toISOString().split('T')[0]
-        const proposalNumber = getNextProposalNumber()
 
         // Collect activities (up to 10)
         const activities = []
@@ -275,7 +337,6 @@ function Dashboard({ user, data, clubs = [] }) {
                 eventName: eventName.toString().trim(),
                 locationType: formData.get(`locationType${i}`)?.toString() || '',
                 targetVenue: formData.get(`targetVenue${i}`)?.toString().trim() || '',
-                destinationOffCampus: formData.get(`destinationOffCampus${i}`)?.toString().trim() || '',
                 numberOfStudents: parseInt(formData.get(`numberOfStudents${i}`) || '0', 10),
                 targetDates: formData.get(`targetDates${i}`)?.toString().trim() || '',
                 eventDescription: formData.get(`eventDescription${i}`)?.toString().trim() || '',
@@ -304,45 +365,26 @@ function Dashboard({ user, data, clubs = [] }) {
         const totalAmount = activities.reduce((sum, a) => sum + a.activityTotal, 0) +
             nonActivityItems.reduce((sum, item) => sum + item.amount, 0)
 
-        const payload = {
-            dateCompleted,
-            proposalNumber,
-            clubName: formData.get('clubName')?.toString().trim() || selectedClub,
-            previousClubName: formData.get('previousClubName')?.toString().trim() || '',
-            numberOfMembers: parseInt(formData.get('numberOfMembers') || '0', 10),
-            clubHistory: formData.get('clubHistory')?.toString().trim() || '',
-            clubRoom: clubInfo.location || 'TBD',
+        const apiPayload = {
+            club: backendClubId,
+            semester: formData.get('clubName')?.toString().trim() || selectedClub,
+            status: 'PENDING',
+            previous_name: formData.get('previousClubName')?.toString().trim() || '',
+            member_count: parseInt(formData.get('numberOfMembers') || '0', 10),
+            community_enhancement: formData.get('clubHistory')?.toString().trim() || '',
             activities,
-            nonActivityItems,
-            nonActivityTotal: nonActivityItems.reduce((sum, item) => sum + item.amount, 0),
-            totalAmount,
-            submittedBy: user?.name || '',
-            officerPosition: formData.get('officerPosition')?.toString() || '',
-            submittedAt: now.toISOString(),
+            non_activity_items: nonActivityItems,
+            total_requested: totalAmount,
         }
 
-        // Format: "Budget for club-name NN DD-MM-YYYY"
-        const day = String(now.getDate()).padStart(2, '0')
-        const month = String(now.getMonth() + 1).padStart(2, '0')
-        const year = now.getFullYear()
-        const fileName = `Budget for ${selectedClubSlug} ${String(proposalNumber).padStart(2, '0')} ${day}-${month}-${year}.json`
-
-        const jsonString = JSON.stringify(payload, null, 2)
-        const blob = new Blob([jsonString], { type: 'application/json' })
-        const blobUrl = URL.createObjectURL(blob)
-        const downloadLink = document.createElement('a')
-        downloadLink.href = blobUrl
-        downloadLink.download = fileName
-        downloadLink.click()
-        URL.revokeObjectURL(blobUrl)
-
-        const queuedItem = { fileName, folderPath: budgetFolderPath, clubName: selectedClub, payload }
-        const existingQueue = JSON.parse(window.localStorage.getItem('budget-proposal-queue') || '[]')
-        const nextQueue = [...existingQueue, queuedItem]
-        window.localStorage.setItem('budget-proposal-queue', JSON.stringify(nextQueue))
-        setBudgetProposals(nextQueue.filter((entry) => entry.clubName === selectedClub))
-
-        setBudgetProposalStatus(`Budget proposal created as ${fileName}. Save it to ${budgetFolderPath}`)
+        try {
+            await createBudgetProposal(apiPayload)
+            const updated = await fetchBudgetProposalsByClub(backendClubId)
+            setBudgetProposals(updated)
+            setBudgetProposalStatus('Budget proposal submitted successfully!')
+        } catch (err) {
+            setBudgetProposalStatus(`Error submitting proposal: ${err.message}`)
+        }
         setShowBudgetForm(false)
         event.currentTarget.reset()
     }
@@ -375,61 +417,31 @@ function Dashboard({ user, data, clubs = [] }) {
                 />
             </div>
 
-            <section className={styles.dashboard__metrics} aria-label="Student attendance data">
-                {clubData.attendance.map((metric) => (
+            <section className={styles.dashboard__metrics} aria-label="Club summary metrics">
+                {attendanceMetrics.map((metric) => (
                     <MetricPill key={metric.label} label={metric.label} value={metric.value} />
                 ))}
             </section>
 
             <section className={styles.dashboard__grid}>
-                {demoMode ? (
-                    <>
-                        <div className={styles.dashboard__demoPanel}>
-                            <h3 className={styles.dashboard__panelTitle}>Budget proposals</h3>
-                            <ul className={styles.dashboard__demoList}>
-                                {demoBudgetProposals.map((prop) => (
-                                    <li key={prop.id} className={styles.dashboard__demoItem}>
-                                        <span>{prop.title}</span>
-                                        <span className={prop.status === 'approved' ? styles.dashboard__statusApproved : styles.dashboard__statusDenied}>
-                                            {prop.status}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className={styles.dashboard__demoPanel}>
-                            <h3 className={styles.dashboard__panelTitle}>Recent events</h3>
-                            <ul className={styles.dashboard__demoList}>
-                                {demoRecentEvents.map((event) => (
-                                    <li key={event.id} className={styles.dashboard__demoItem}>
-                                        <span>{event.title}</span>
-                                        <span className={styles.dashboard__demoMeta}>{event.displayDate}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className={styles.dashboard__demoPanel}>
-                            <h3 className={styles.dashboard__panelTitle}>Recent food orders</h3>
-                            <ul className={styles.dashboard__demoList}>
-                                {demoFoodOrders.map((order) => (
-                                    <li key={order.id} className={styles.dashboard__demoItem}>
-                                        <div>
-                                            <span className={styles.dashboard__demoOrderEvent}>{order.event}</span>
-                                            <span className={styles.dashboard__demoOrderItems}>{order.items}</span>
-                                        </div>
-                                        <span className={styles.dashboard__demoMeta}>{order.date}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <DashboardPanel title="Budget proposals" items={clubData.budgetProposals} />
-                        <DashboardPanel title="Recent events" items={clubData.recentEvents} />
-                        <DashboardPanel title="Recent food orders" items={clubData.recentFoodOrders} />
-                    </>
-                )}
+                <DashboardPanel
+                    title="Budget proposals"
+                    items={budgetProposals.length
+                        ? budgetProposals.map((p) => `${p.semester || 'Budget'} — $${Number(p.total_requested || 0).toFixed(2)} — ${p.status}`)
+                        : ['No budget proposals yet.']}
+                />
+                <DashboardPanel
+                    title="Recent events"
+                    items={clubEvents.length
+                        ? clubEvents.map((e) => `${e.name} — ${e.date} — ${e.location}`)
+                        : ['No events yet.']}
+                />
+                <DashboardPanel
+                    title="Recent food orders"
+                    items={foodOrders.length
+                        ? foodOrders.map((o) => `${o.order_type === 'MBJ' ? 'MBJ' : 'Out-of-Network'} — ${o.event_date || 'No date'} — ${o.status || 'PENDING'}`)
+                        : ['No food orders yet.']}
+                />
             </section>
 
             <section className={styles.dashboard__actionsSection}>
@@ -441,12 +453,87 @@ function Dashboard({ user, data, clubs = [] }) {
                     ))}
                 </div>
 
-                {activeAction === 'Club events' ? (
+                {activeAction === 'Attendance' ? (
+                    <section className={styles.dashboard__foodOrderPanel}>
+                        <div className={styles.dashboard__panelHeader}>
+                            <div>
+                                <h3 className={styles.dashboard__title}>Attendance Management</h3>
+                                <p className={styles.dashboard__description}>Review and confirm student attendance for {selectedClub}</p>
+                            </div>
+                            <Button variant="ghost" onClick={handleExportAttendance}>
+                                Export JSON
+                            </Button>
+                        </div>
+
+                        {attendees.length ? (
+                            <div className={styles.dashboard__attendeeList}>
+                                <div className={styles.dashboard__attendeeHeader}>
+                                    <span className={styles.dashboard__attendeeCol}>Name</span>
+                                    <span className={styles.dashboard__attendeeCol}>EMPLID</span>
+                                    <span className={styles.dashboard__attendeeCol}>Date</span>
+                                    <span className={styles.dashboard__attendeeCol}>Status</span>
+                                    <span className={styles.dashboard__attendeeCol}>Actions</span>
+                                </div>
+                                {attendees.map((a, i) => (
+                                    <div key={`${a.emplid}-${i}`} className={styles.dashboard__attendeeRow}>
+                                        <span className={styles.dashboard__attendeeCol}>{a.name}</span>
+                                        <span className={styles.dashboard__attendeeCol}>{a.emplid}</span>
+                                        <span className={styles.dashboard__attendeeCol}>{a.date}</span>
+                                        <span className={`${styles.dashboard__attendeeCol} ${styles[`dashboard__status--${a.status}`] || ''}`.trim()}>
+                                            {a.status === 'present' ? '✅ Present' : a.status === 'absent' ? '❌ Absent' : '⏳ Pending'}
+                                        </span>
+                                        <span className={styles.dashboard__attendeeCol}>
+                                            {a.status !== 'present' && (
+                                                <Button variant="ghost" onClick={() => handleAttendanceAction(i, 'present')}>
+                                                    Confirm
+                                                </Button>
+                                            )}
+                                            {a.status !== 'absent' && (
+                                                <Button variant="ghost" onClick={() => handleAttendanceAction(i, 'absent')}>
+                                                    Reject
+                                                </Button>
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className={styles.dashboard__description}>No attendance records yet for this club.</p>
+                        )}
+                    </section>
+                ) : activeAction === 'Club events' ? (
                     <section className={styles.dashboard__panel}>
-                        <h3 className={styles.dashboard__panelTitle}>Club Events Feed</h3>
-                        <p className={styles.dashboard__description}>Recent and upcoming events for {selectedClub}</p>
+                        <div className={styles.dashboard__panelHeader}>
+                            <div>
+                                <h3 className={styles.dashboard__panelTitle}>Club Events Feed</h3>
+                                <p className={styles.dashboard__description}>Recent and upcoming events for {selectedClub}</p>
+                            </div>
+                            <Button variant="primary" onClick={() => setShowEventScheduler(true)}>
+                                Create Event
+                            </Button>
+                        </div>
 
                         <div className={styles.dashboard__eventsFeed}>
+                            {/* Scheduled Events from API */}
+                            {clubEvents.length > 0 ? (
+                                <div className={styles.dashboard__eventSection}>
+                                    <h4 className={styles.dashboard__eyebrow}>Scheduled Events</h4>
+                                    <div className={styles.dashboard__eventCards}>
+                                        {clubEvents.map((event) => (
+                                            <div key={event.id} className={styles.dashboard__createdEventCard}>
+                                                <h5 className={styles.dashboard__eventTitle}>{event.name || event.title}</h5>
+                                                <div className={styles.dashboard__createdEventMeta}>
+                                                    <span className={styles.dashboard__createdEventRoom}>
+                                                        {event.location || 'No location'}
+                                                    </span>
+                                                </div>
+                                                <p className={styles.dashboard__eventTime}>{event.date}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null}
+
                             {recentHeldEvents.length > 0 ? (
                                 <div className={styles.dashboard__eventSection}>
                                     <h4 className={styles.dashboard__eyebrow}>Recently Held Events</h4>
@@ -477,32 +564,13 @@ function Dashboard({ user, data, clubs = [] }) {
                                 <p className={styles.dashboard__emptyState}>No events have been posted yet.</p>
                             )}
 
-                            {demoMode && (
-                                <div className={styles.dashboard__eventSection}>
-                                    <h4 className={styles.dashboard__eyebrow}>Upcoming Events (TBD) — Vote Now!</h4>
-                                    <p className={styles.dashboard__description}>Students can vote on which events they&apos;d like to see next</p>
-                                    <div className={styles.dashboard__tbdEvents}>
-                                        {demoTbdEvents.map((event) => (
-                                            <div key={event.id} className={styles.dashboard__tbdEventCard}>
-                                                <span className={styles.dashboard__tbdEventTitle}>{event.title}</span>
-                                                <div className={styles.dashboard__voteBar}>
-                                                    <div
-                                                        className={styles.dashboard__voteFill}
-                                                        style={{ width: `${(event.votes / 50) * 100}%` }}
-                                                    />
-                                                </div>
-                                                <span className={styles.dashboard__voteCount}>{event.votes} votes</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            {/* TBD voting section removed — now driven by backend data */}
                         </div>
                     </section>
                 ) : activeAction === 'Food orders' ? (
                     <section className={styles.dashboard__foodOrderPanel}>
                         <h3 className={styles.dashboard__title}>Food Orders</h3>
-                        <p className={styles.dashboard__description}>Orders are stored for {selectedClub} and should live in {folderPath}</p>
+                        <p className={styles.dashboard__description}>Manage food orders for {selectedClub}</p>
 
                         <Button variant="primary" onClick={() => setShowFoodOrderTypeModal(true)}>
                             New Food Order
@@ -515,13 +583,15 @@ function Dashboard({ user, data, clubs = [] }) {
                             {foodOrders.length ? (
                                 <ul className={styles.dashboard__orderItems}>
                                     {foodOrders.map((order) => (
-                                        <li key={`${order.fileName}-${order.payload.submittedAt}`}>
-                                            {order.fileName} — {order.payload.orderType || 'Legacy Order'}
+                                        <li key={order.id}>
+                                            <strong>{order.order_type === 'MBJ' ? 'MBJ' : 'Out-of-Network'}</strong> — {order.event_date || 'No date'} — {order.status} — ${order.total_cost || '0.00'}
+                                            {order.food_items ? <br /> : null}
+                                            {order.food_items ? <span className={styles.dashboard__reviewComment}>{order.food_items}</span> : null}
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                <p className={styles.dashboard__description}>No food orders queued yet.</p>
+                                <p className={styles.dashboard__description}>No food orders yet.</p>
                             )}
                         </div>
                     </section>
@@ -543,8 +613,16 @@ function Dashboard({ user, data, clubs = [] }) {
                             {budgetProposals.length ? (
                                 <ul className={styles.dashboard__orderItems}>
                                     {budgetProposals.map((proposal) => (
-                                        <li key={`${proposal.fileName}-${proposal.payload.submittedAt}`}>
-                                            {proposal.fileName} — Total: ${proposal.payload.totalAmount?.toFixed(2) || '0.00'}
+                                        <li key={proposal.id} className={styles.dashboard__proposalRow}>
+                                            <span>{proposal.semester || 'Budget Proposal'} — ${Number(proposal.total_requested || 0).toFixed(2)} — {proposal.status}</span>
+                                            {(user?.role === 'club advisor' || user?.role === 'sga officer') && proposal.status === 'PENDING' && (
+                                                <Button variant="ghost" onClick={() => { setSelectedProposal(proposal); setReviewComment(''); setShowReviewModal(true) }}>
+                                                    Review
+                                                </Button>
+                                            )}
+                                            {proposal.reviewer_comment && (
+                                                <span className={styles.dashboard__reviewComment}>Comment: {proposal.reviewer_comment}</span>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -563,9 +641,14 @@ function Dashboard({ user, data, clubs = [] }) {
                                 <p><strong>Selected Room:</strong> {selectedRoom.roomNumber}</p>
                                 <p><strong>Building:</strong> {selectedRoom.buildingName}</p>
                                 <p><strong>Floor:</strong> {selectedRoom.floor}</p>
-                                <Button variant="ghost" onClick={() => setSelectedRoom(null)}>
-                                    Change Room
-                                </Button>
+                                <div className={styles.dashboard__roomActions}>
+                                    <Button variant="primary" onClick={() => setShowEventScheduler(true)}>
+                                        Schedule Event
+                                    </Button>
+                                    <Button variant="ghost" onClick={() => setSelectedRoom(null)}>
+                                        Change Room
+                                    </Button>
+                                </div>
                             </div>
                         ) : (
                             <Button variant="primary" onClick={() => setShowRoomReservation(true)}>
@@ -580,6 +663,48 @@ function Dashboard({ user, data, clubs = [] }) {
                     </section>
                 )}
             </section>
+
+            {/* Club Dissolution — only visible to advisors and SGA officers */}
+            {canDissolve && !isClubDissolved && (
+                <div className={styles.dashboard__dissolveSection}>
+                    <p className={styles.dashboard__dissolveWarning}>Danger Zone</p>
+                    <p className={styles.dashboard__description}>
+                        Dissolving a club is permanent. All associated data will be archived and the club will no longer appear in the directory.
+                    </p>
+                    <Button variant="ghost" onClick={() => setShowDissolveConfirm(true)}>
+                        Dissolve this club
+                    </Button>
+                </div>
+            )}
+            {isClubDissolved && (
+                <div className={styles.dashboard__dissolveSection}>
+                    <p className={styles.dashboard__dissolveWarning}>This club has been dissolved.</p>
+                </div>
+            )}
+
+            {/* Club Dissolution Confirmation Modal */}
+            <Modal
+                isOpen={showDissolveConfirm}
+                title="Confirm Club Dissolution"
+                onClose={() => setShowDissolveConfirm(false)}
+            >
+                <div className={styles.dashboard__reviewPanel}>
+                    <p className={styles.dashboard__dissolveWarning}>
+                        Are you sure you want to dissolve &ldquo;{selectedClub}&rdquo;?
+                    </p>
+                    <p className={styles.dashboard__description}>
+                        This action cannot be undone. The club will be removed from the active directory and all current operations will be archived.
+                    </p>
+                    <div className={styles.dashboard__reviewActions}>
+                        <Button variant="primary" onClick={handleDissolveClub}>
+                            Yes, Dissolve Club
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowDissolveConfirm(false)}>
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Food Order Type Selector Modal */}
             <Modal
@@ -742,10 +867,66 @@ function Dashboard({ user, data, clubs = [] }) {
                 onRoomSelected={(room) => setSelectedRoom(room)}
                 onScheduleEvent={(room) => {
                     setSelectedRoom(room)
-                    // Could open event scheduling modal here
+                    setShowRoomReservation(false)
+                    setShowEventScheduler(true)
                 }}
                 setToastMessage={(msg) => setFoodOrderStatus(msg)}
             />
+
+            {/* Event Scheduler Component */}
+            <EventScheduler
+                isOpen={showEventScheduler}
+                onClose={() => setShowEventScheduler(false)}
+                selectedRoom={selectedRoom}
+                onReserveRoom={() => {
+                    setShowEventScheduler(false)
+                    setShowRoomReservation(true)
+                }}
+                onEventCreated={(eventData) => {
+                    setFoodOrderStatus(`Event "${eventData.title || eventData.name}" created successfully!`)
+                    // Re-fetch events from API to stay in sync
+                    if (backendClubId) {
+                        fetchEventsByClub(backendClubId)
+                            .then((data) => setClubEvents(data))
+                            .catch(() => { })
+                    }
+                }}
+                club={{ ...clubInfo, backendId: backendClubId }}
+                user={user}
+            />
+
+            {/* Budget Review Modal */}
+            <Modal
+                isOpen={showReviewModal}
+                title="Review Budget Proposal"
+                onClose={() => { setShowReviewModal(false); setSelectedProposal(null) }}
+            >
+                {selectedProposal && (
+                    <div className={styles.dashboard__reviewPanel}>
+                        <p className={styles.dashboard__description}>
+                            <strong>{selectedProposal.semester || 'Budget Proposal'}</strong> — ${Number(selectedProposal.total_requested || 0).toFixed(2)}
+                        </p>
+                        {selectedProposal.community_enhancement && (
+                            <p className={styles.dashboard__description}><strong>Club history:</strong> {selectedProposal.community_enhancement}</p>
+                        )}
+                        <label className={styles.dashboard__field}>
+                            <span>Reviewer comment / suggestion</span>
+                            <textarea
+                                className={styles.dashboard__textarea}
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                rows={3}
+                                placeholder="Add feedback or suggestions for the club..."
+                            />
+                        </label>
+                        <div className={styles.dashboard__reviewActions}>
+                            <Button variant="primary" onClick={() => handleBudgetReview('APPROVED')}>Approve</Button>
+                            <Button variant="ghost" onClick={() => handleBudgetReview('RETURNED')}>Return for Edits</Button>
+                            <Button variant="ghost" onClick={() => handleBudgetReview('DENIED')}>Deny</Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Budget Proposal Form Modal */}
             <Modal

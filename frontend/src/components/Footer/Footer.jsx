@@ -28,7 +28,7 @@ function Footer({ title, onDevToggle }) {
                 </section>
 
                 <section className={styles.footer__section}>
-                    <h3 className={styles.footer__heading}>Explore</h3>
+                    <h3 className={styles.footer__heading}>App</h3>
                     <ul className={styles.footer__list}>
                         <li className={styles.footer__item}> About </li>
                         <li className={styles.footer__item}> Dashboard </li>

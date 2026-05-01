@@ -1,0 +1,111 @@
+.voting {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 1rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--color-white);
+}
+
+.voting__header {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.voting__title {
+    margin: 0;
+    color: var(--color-indigo);
+    font-size: clamp(var(--font-size-l), 2.5vw, var(--font-size-2xl));
+    font-weight: 700;
+}
+
+.voting__subtitle {
+    margin: 0;
+    color: var(--color-slate);
+    font-size: var(--font-size-s);
+}
+
+.voting__section {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.voting__clubName {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-m);
+    font-weight: 700;
+}
+
+.voting__grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.voting__card {
+    border: 2px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    display: grid;
+    gap: 0.5rem;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.voting__card:hover {
+    border-color: var(--color-accent);
+}
+
+.voting__card--selected {
+    border-color: var(--color-accent);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.voting__eventTitle {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+}
+
+.voting__eventDate {
+    margin: 0;
+    color: var(--color-pewter);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.voting__results {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.voting__bar {
+    height: 8px;
+    background: var(--color-ghost, #e9ecef);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.voting__barFill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 999px;
+    transition: width 0.5s ease;
+    min-width: 4px;
+}
+
+.voting__count {
+    color: var(--color-slate);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+.voting__hint {
+    margin: 0;
+    color: var(--color-pewter);
+    font-size: var(--font-size-xs);
+    font-style: italic;
+}

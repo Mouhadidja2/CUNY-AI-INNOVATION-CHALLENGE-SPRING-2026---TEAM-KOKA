@@ -1,0 +1,159 @@
+.elections {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--color-dove);
+    border-radius: 1rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--color-white);
+}
+
+.elections__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.elections__title {
+    margin: 0;
+    color: var(--color-indigo);
+    font-size: clamp(var(--font-size-l), 2.5vw, var(--font-size-2xl));
+    font-weight: 700;
+}
+
+.elections__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--color-slate);
+    font-size: var(--font-size-s);
+}
+
+.elections__grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.elections__card {
+    border: 1px solid var(--color-dove);
+    border-radius: 0.9rem;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.9);
+    display: grid;
+    gap: 0.75rem;
+    transition: box-shadow 0.2s;
+}
+
+.elections__card:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.elections__cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.elections__badge {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.elections__deadline {
+    font-size: var(--font-size-xs);
+    color: var(--color-pewter);
+}
+
+.elections__clubName {
+    margin: 0;
+    color: var(--color-black);
+    font-size: var(--font-size-m);
+    font-weight: 700;
+}
+
+.elections__candidates {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.elections__candidate {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border: 2px solid var(--color-dove);
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.elections__candidate:hover {
+    border-color: var(--color-accent);
+    background: rgba(59, 130, 246, 0.03);
+}
+
+.elections__candidate--selected {
+    border-color: var(--color-accent);
+    background: rgba(59, 130, 246, 0.06);
+}
+
+.elections__candidate--locked {
+    cursor: default;
+    opacity: 0.8;
+}
+
+.elections__candidate--locked:hover {
+    border-color: var(--color-dove);
+    background: transparent;
+}
+
+.elections__candidate--selected.elections__candidate--locked {
+    border-color: #16a34a;
+    background: rgba(22, 163, 74, 0.06);
+}
+
+.elections__radio {
+    margin-top: 0.15rem;
+    accent-color: var(--color-accent);
+}
+
+.elections__candidateInfo {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.elections__candidateName {
+    font-weight: 600;
+    color: var(--color-black);
+    font-size: var(--font-size-s);
+}
+
+.elections__candidateStatement {
+    color: var(--color-charcoal);
+    font-size: var(--font-size-xs);
+    line-height: 1.45;
+}
+
+.elections__actions {
+    margin-top: 0.25rem;
+}
+
+.elections__voted {
+    margin: 0;
+    color: #16a34a;
+    font-weight: 600;
+    font-size: var(--font-size-s);
+}
+
+.elections__loginHint {
+    margin: 0;
+    color: var(--color-pewter);
+    font-size: var(--font-size-s);
+    font-style: italic;
+}

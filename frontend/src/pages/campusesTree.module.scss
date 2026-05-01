@@ -1,0 +1,159 @@
+.page {
+    padding: 24px;
+    background: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.roomsBtn {
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.treeWrap {
+    background: #ffffff;
+    padding: 8px 12px;
+}
+
+.tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+/* Campus node (top-level): black background with logo and white text */
+.node {
+    border: 1px solid #000000;
+    background: #000000;
+    color: #ffffff;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.node button {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    padding: 0;
+}
+
+.node img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0) invert(1);
+}
+
+/* Branch connector on the left for child nodes */
+.branch {
+    margin-top: 12px;
+    margin-left: 28px;
+    padding-left: 16px;
+    border-left: 1px solid #000000;
+    transition: max-height 260ms ease, opacity 260ms ease;
+    overflow: hidden;
+}
+
+/* Collapsed/expanded helpers */
+.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+.expanded {
+    max-height: 2000px;
+    opacity: 1;
+}
+
+/* Club node (second-level): white boxes with 1px black border */
+.nodeChild {
+    margin-bottom: 10px;
+}
+
+.nodeChild > button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #000000;
+    padding: 8px 10px;
+    border-radius: 4px;
+}
+
+.branchThird {
+    margin-top: 8px;
+    margin-left: 20px;
+    padding-left: 12px;
+    border-left: 1px solid #000000;
+    transition: max-height 260ms ease, opacity 260ms ease;
+    overflow: hidden;
+}
+
+.branchHeader {
+    font-weight: 700;
+    margin-top: 8px;
+    margin-bottom: 6px;
+}
+
+.leaf {
+    padding: 6px 8px;
+    border: 1px solid #000000;
+    background: #ffffff;
+    color: #000000;
+    border-radius: 3px;
+    margin-bottom: 6px;
+}
+
+.placeholder { color: #000000 }
+
+.caret {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    transition: transform 180ms ease;
+    margin-left: 8px;
+}
+
+.caretRotate { transform: rotate(90deg) }
+
+.rooms__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+}
+
+.rooms__panel {
+    background: #ffffff;
+    width: 92%;
+    max-width: 900px;
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid #000000;
+}
+
+.rooms__building { margin-bottom: 12px }
+
+.rooms__room { font-size: 0.9rem; margin: 4px 0 }

@@ -5,6 +5,8 @@ import Hero from '../components/Hero/Hero'
 import Button from '../components/Button/Button'
 import ClubsHub from '../components/ClubsHub/ClubsHub'
 import RegisteredEvents from '../components/RegisteredEvents/RegisteredEvents'
+import ClubElections from '../components/ClubElections/ClubElections'
+import TbdEventVoting from '../components/TbdEventVoting/TbdEventVoting'
 import styles from './home.module.scss'
 
 const mediaPool = Object.values(
@@ -147,6 +149,14 @@ function Home({
                     onMarkAttended={onMarkAttended}
                     onAddFeedback={onAddFeedback}
                 />
+            ) : null}
+
+            {selectedCampusId ? (
+                <ClubElections currentUser={currentUser} />
+            ) : null}
+
+            {currentUser && registeredEvents && selectedCampusId ? (
+                <TbdEventVoting clubs={clubs} registeredEvents={registeredEvents} />
             ) : null}
 
             {showDevSections ? (
